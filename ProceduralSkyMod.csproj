@@ -48,9 +48,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Derail Valley\DerailValley_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.Highlight, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Derail Valley\DerailValley_Data\Managed\Facepunch.Highlight.dll</HintPath>
+    <Reference Include="RedworkDE.DvTime">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Derail Valley\Mods\RedworkDE.DvTime\RedworkDE.DvTime.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -369,8 +368,10 @@
     <Compile Include="ProceduralSkyInitializer.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="SkyCamConstraint.cs" />
     <Compile Include="SkyManager.cs" />
+    <Compile Include="TimeSource.cs" />
     <Compile Include="TransformExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -386,7 +387,8 @@ copy $(TargetPath) "$(DVInstallPath)Mods\$(SolutionName)\"
 copy $(SolutionDir)Info.json "$(DVInstallPath)Mods\$(SolutionName)\"
 
 if $(Configuration) == Release (
-  powershell Compress-Archive -DestinationPath '$(SolutionDir)$(SolutionName).zip' -Path '"$(DVInstallPath)Mods\$(SolutionName)\' -Force
+  mkdir "$(SolutionDir)bld\"
+  powershell Compress-Archive -DestinationPath '$(SolutionDir)bld\$(SolutionName).zip' -Path '"$(DVInstallPath)Mods\$(SolutionName)\' -Force
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>

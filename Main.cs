@@ -8,17 +8,31 @@ using System.Collections.Generic;
 namespace ProceduralSkyMod
 {
 	public class Main
-    {
+	{
 		public static bool enabled;
 		public static bool initialized;
+		public static Settings settings;
 
 		public static string Path { get; private set; }
 
 		static bool Load (UnityModManager.ModEntry modEntry)
 		{
+			try { settings = Settings.Load<Settings>(modEntry); } catch { }
 			Path = modEntry.Path;
 			modEntry.OnToggle = OnToggle;
+			modEntry.OnGUI = OnGui;
+			modEntry.OnSaveGUI = OnSaveGui;
 			return true; // If false the mod will show an error
+		}
+
+		static void OnGui (UnityModManager.ModEntry modEntry)
+		{
+			settings.Draw(modEntry);
+		}
+
+		static void OnSaveGui (UnityModManager.ModEntry modEntry)
+		{
+			settings.Save(modEntry);
 		}
 
 		static bool OnToggle (UnityModManager.ModEntry modEntry, bool value)
