@@ -61,13 +61,8 @@ namespace ProceduralSkyMod
 		void Update ()
 		{
 			// rotation
-#if DEBUG
-			skyboxNight.Rotate(Vector3.forward, 1f * Time.deltaTime * 2, Space.Self);
-			moonBillboard.Rotate(Vector3.forward, 0.9f * Time.deltaTime * 2, Space.Self);
-#else
-			skyboxNight.Rotate(Vector3.forward, 1f * Time.deltaTime * 0.5f, Space.Self);
-			moonBillboard.Rotate(Vector3.forward, 0.9f * Time.deltaTime * 0.5f, Space.Self);
-#endif
+			skyboxNight.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta, Space.Self);
+			moonBillboard.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta * 0.9f, Space.Self);
 
 			// movement
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;

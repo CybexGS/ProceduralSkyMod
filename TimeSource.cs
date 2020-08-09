@@ -3,46 +3,19 @@ using UnityEngine;
 
 namespace ProceduralSkyMod
 {
-	public static class TimeSource
+	public class TimeSource
 	{
-		static TimeSource ()
+		public static float dayLengthInSeconds = Main.settings.dayLengthSeconds;
+		public static float dayProgress = 0f;
+		public static float dayProgressDelta = 0f;
+
+		public static float DayProgressDelta { get { CalculateDayProgress(); return dayProgressDelta; } }
+
+		public static void CalculateDayProgress ()
 		{
-			if (DvTimeAdapter.Available)
-			{
-				GetCurrentTime = DvTimeAdapter.GetTime;
-			}
-			else
-			{
-				GetCurrentTime = () => DateTime.Now;
-			}
+			float newProgress = (Time.time % dayLengthInSeconds) / dayLengthInSeconds;
+			dayProgressDelta = (newProgress < dayProgress) ? newProgress + 1 - dayProgress : newProgress - dayProgress;
+			dayProgress = newProgress;
 		}
-
-		public static Func<DateTime> GetCurrentTime;
-	}
-
-	public static class DvTimeAdapter
-	{
-		static DvTimeAdapter ()
-		{
-			try
-			{
-				DoInitialize(); // separate function to be able to catch dll load exceptions when DvTime is not installed
-			}
-			catch (Exception ex)
-			{
-#if DEBUG
-				Debug.Log($"unable to load DVTime: {ex}");
-#endif
-			}
-		}
-
-		private static void DoInitialize ()
-		{
-			_ = CurrentTime.Time;
-			GetTime = () => CurrentTime.Time;
-		}
-
-		public static bool Available => GetTime != null;
-		public static Func<DateTime> GetTime;
 	}
 }
