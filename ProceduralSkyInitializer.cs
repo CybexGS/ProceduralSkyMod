@@ -67,9 +67,6 @@ namespace ProceduralSkyMod
 			mainCam.cullingMask = -1;
 			mainCam.cullingMask &= ~(1 << 31);
 			mainCam.depth = 1;
-			mainCam.fieldOfView = mainCam.fieldOfView;
-			mainCam.nearClipPlane = mainCam.nearClipPlane;
-			mainCam.farClipPlane = mainCam.farClipPlane;
 
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
@@ -84,13 +81,16 @@ namespace ProceduralSkyMod
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
 
-			// env cam
+			// clear cam
 			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
 			clearCam.transform.SetParent(mainCam.transform);
 			clearCam.transform.ResetLocal();
 			clearCam.clearFlags = CameraClearFlags.Skybox;
 			clearCam.cullingMask = 0;
 			clearCam.depth = -1;
+			clearCam.fieldOfView = mainCam.fieldOfView;
+			clearCam.nearClipPlane = mainCam.nearClipPlane;
+			clearCam.farClipPlane = mainCam.farClipPlane;
 
 			constraint.main = mainCam;
 			constraint.sky = skyCam;
