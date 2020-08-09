@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.PostProcessing;
 using System.Collections.Generic;
-using System;
 
 namespace ProceduralSkyMod
 {
@@ -57,6 +56,7 @@ namespace ProceduralSkyMod
 			GameObject dsMaster = new GameObject() { name = "DynamicSkyMod" };
 			dsMaster.transform.Reset();
 			SkyManager skyManager = dsMaster.AddComponent<SkyManager>();
+			skyManager.latitude = 44.7872f;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
@@ -84,7 +84,7 @@ namespace ProceduralSkyMod
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
 
-			// clear cam
+			// env cam
 			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
 			clearCam.transform.SetParent(mainCam.transform);
 			clearCam.transform.ResetLocal();
@@ -120,9 +120,7 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sun Position...");
 #endif
-			GameObject sunPivot = new GameObject();
-			sunPivot.transform.SetParent(dsSkyboxNight.transform, false);
-			dirLight.transform.SetParent(sunPivot.transform);
+			dirLight.transform.SetParent(dsSkyboxNight.transform);
 			dirLight.transform.ResetLocal();
 			dirLight.transform.position += Vector3.up * 10;
 			dirLight.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
@@ -159,7 +157,6 @@ namespace ProceduralSkyMod
 			// assign skyboxNight after sun is positioned to get correct sun rotation
 			skyManager.SkyboxNight = dsSkyboxNight.transform;
 			skyManager.Sun = dirLight;
-			skyManager.SunPivot = sunPivot.transform;
 
 			skyManager.CloudPlane = cloudPlane.transform;
 			skyManager.CloudMaterial = cloudMat;
