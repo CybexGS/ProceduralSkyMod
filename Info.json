@@ -1,7 +1,7 @@
 {
     "Id": "ProceduralSkyMod",
     "DisplayName": "Procedural Sky",
-    "Author": "Cybex",
+    "Author": "Cybex, Fauxnik",
     "Version": "0.0.0",
     "AssemblyName": "ProceduralSkyMod.dll",
     "EntryMethod": "ProceduralSkyMod.Main.Load"
