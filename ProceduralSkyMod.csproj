@@ -373,6 +373,7 @@
     <Compile Include="SkyManager.cs" />
     <Compile Include="TimeSource.cs" />
     <Compile Include="TransformExtensions.cs" />
+    <Compile Include="WeatherSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

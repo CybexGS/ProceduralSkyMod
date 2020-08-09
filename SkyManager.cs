@@ -55,7 +55,7 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
-			StartCoroutine(CloudChanger());
+			StartCoroutine(WeatherSource.CloudChanger());
 		}
 
 		void Update ()
@@ -87,27 +87,12 @@ namespace ProceduralSkyMod
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, Sun.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
 
-			cloudCurrent = Mathf.Lerp(cloudCurrent, cloudTarget, Time.deltaTime * 0.1f);
-			CloudMaterial.SetFloat("_ClearSky", cloudCurrent);
+			CloudMaterial.SetFloat("_ClearSky", WeatherSource.SkyClarity);
 		}
 
 		void OnDisable ()
 		{
-			StopCoroutine(CloudChanger());
-		}
-
-		float cloudTarget = 2, cloudCurrent = 1;
-		private IEnumerator CloudChanger ()
-		{
-			while (true)
-			{
-				yield return new WaitForSeconds(60);
-				// .5 to 5 to test it
-				cloudTarget = Mathf.Clamp(Random.value * 5, .5f, 5f);
-#if DEBUG
-				Debug.Log(string.Format("New Cloud Target of {0}, current {1}", cloudTarget, cloudCurrent));
-#endif
-			}
+			StopCoroutine(WeatherSource.CloudChanger());
 		}
 	}
 }
