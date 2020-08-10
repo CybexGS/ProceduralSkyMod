@@ -20,17 +20,17 @@ namespace ProceduralSkyMod
 			try { settings = Settings.Load<Settings>(modEntry); } catch { }
 			Path = modEntry.Path;
 			modEntry.OnToggle = OnToggle;
-			modEntry.OnGUI = OnGui;
-			modEntry.OnSaveGUI = OnSaveGui;
+			modEntry.OnGUI = OnGUI;
+			modEntry.OnSaveGUI = OnSaveGUI;
 			return true; // If false the mod will show an error
 		}
 
-		static void OnGui (UnityModManager.ModEntry modEntry)
+		static void OnGUI (UnityModManager.ModEntry modEntry)
 		{
 			settings.Draw(modEntry);
 		}
 
-		static void OnSaveGui (UnityModManager.ModEntry modEntry)
+		static void OnSaveGUI (UnityModManager.ModEntry modEntry)
 		{
 			settings.Save(modEntry);
 		}
