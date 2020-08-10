@@ -15,27 +15,9 @@ namespace ProceduralSkyMod
 
 		private Vector3 worldPos;
 
-		private Transform skyboxNight;
-		private Transform moonBillboard;
-
-		public Transform SkyboxNight {
-			get => skyboxNight;
-			set
-			{
-				skyboxNight = value;
-				skyboxNight.localRotation = Quaternion.Euler(new Vector3(-latitude, 0, 0));
-			}
-		}
-
-		public Transform MoonBillboard
-		{
-			get => moonBillboard;
-			set
-			{
-				moonBillboard = value;
-				moonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f + 5.14f, 0, 180f));
-			}
-		}
+		public Transform SkyboxNight { get; set; }
+		public Transform SunPivot { get; set; }
+		public Transform MoonBillboard { get; set; }
 
 		public Light Sun { get; set; }
 		public Material StarMaterial { get; set; }
@@ -43,9 +25,9 @@ namespace ProceduralSkyMod
 		public Material CloudMaterial { get; set; }
 		public Material MoonMaterial { get; set; }
 
+		public Transform ClearCam { get; set; }
 		public Transform SkyCam { get; set; }
 		public Transform CloudPlane { get; set; }
-		public Transform ClearCam { get; set; }
 
 		void Start ()
 		{
@@ -60,9 +42,23 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
+			TimeSource.CalculateTimeProgress();
+
 			// rotation
-			skyboxNight.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta, Space.Self);
-			moonBillboard.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta * 0.9f, Space.Self);
+			// daily rotation of skybox night
+			SkyboxNight.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta, Space.Self);
+
+			// daily rotation sun including correcting reduction for year progress
+			SunPivot.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta - 360f * TimeSource.YearProgressDelta, Space.Self);
+			// yearly rotation of sun pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of sun's relative position
+			SunPivot.Rotate(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1), SunPivot.eulerAngles.y, SunPivot.eulerAngles.z), Space.Self);
+
+			// daily rotation of the moon
+			// the moon looses per day about 50 minutes (time not angle) to the sun. 50min / 1440min = 0.03472222222... percent loss, therefore multiply by 1 - 0.03472222
+			MoonBillboard.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta * 0.96527778f, Space.Self);
+			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
+			MoonBillboard.Rotate(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, SunPivot.eulerAngles.y, SunPivot.eulerAngles.z), Space.Self);
+
 
 			// movement
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;

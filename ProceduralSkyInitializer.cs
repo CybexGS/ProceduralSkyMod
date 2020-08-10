@@ -50,12 +50,12 @@ namespace ProceduralSkyMod
 			dirLight.shadowStrength = 0.9f;
 
 #if DEBUG
-			Debug.Log(">>> >>> >>> Setting Up Dynamic Sky Master...");
+			Debug.Log(">>> >>> >>> Setting Up Procedural Sky Master...");
 #endif
 			// Setup dynamic sky
-			GameObject dsMaster = new GameObject() { name = "DynamicSkyMod" };
-			dsMaster.transform.Reset();
-			SkyManager skyManager = dsMaster.AddComponent<SkyManager>();
+			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
+			psMaster.transform.Reset();
+			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
 			skyManager.latitude = 44.7872f;
 
 #if DEBUG
@@ -70,7 +70,7 @@ namespace ProceduralSkyMod
 
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
-			skyCam.transform.SetParent(dsMaster.transform);
+			skyCam.transform.SetParent(psMaster.transform);
 			skyCam.transform.ResetLocal();
 			SkyCamConstraint constraint = skyCam.gameObject.AddComponent<SkyCamConstraint>();
 			skyCam.clearFlags = CameraClearFlags.Depth;
@@ -104,21 +104,23 @@ namespace ProceduralSkyMod
 			MeshRenderer renderer = cloudPlane.AddComponent<MeshRenderer>();
 			Material cloudMat = renderer.sharedMaterial = bundle.transform.Find("CloudPlane").GetComponent<MeshRenderer>().sharedMaterial;
 
-			cloudPlane.transform.SetParent(dsMaster.transform);
+			cloudPlane.transform.SetParent(psMaster.transform);
 			cloudPlane.transform.ResetLocal();
 			cloudPlane.layer = 31;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Skybox Night...");
 #endif
-			GameObject dsSkyboxNight = new GameObject() { name = "SkyboxNight" };
-			dsSkyboxNight.transform.SetParent(dsMaster.transform);
-			dsSkyboxNight.transform.ResetLocal();
+			GameObject skyboxNight = new GameObject() { name = "SkyboxNight" };
+			skyboxNight.transform.SetParent(psMaster.transform);
+			skyboxNight.transform.ResetLocal();
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sun Position...");
 #endif
-			dirLight.transform.SetParent(dsSkyboxNight.transform);
+			GameObject sunPivot = new GameObject() { name = "SunPivot" };
+			sunPivot.transform.SetParent(psMaster.transform);
+			dirLight.transform.SetParent(sunPivot.transform);
 			dirLight.transform.ResetLocal();
 			dirLight.transform.position += Vector3.up * 10;
 			dirLight.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
@@ -128,7 +130,7 @@ namespace ProceduralSkyMod
 #endif
 			GameObject starBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			starBox.GetComponent<MeshRenderer>().sharedMaterial = bundle.transform.Find("StarBox").GetComponent<MeshRenderer>().sharedMaterial;
-			starBox.transform.SetParent(dsSkyboxNight.transform);
+			starBox.transform.SetParent(skyboxNight.transform);
 			starBox.transform.ResetLocal();
 			starBox.transform.localRotation = Quaternion.Euler(new Vector3(0, 68.5f, 28.9f));
 			starBox.transform.localScale = Vector3.one * 20;
@@ -144,7 +146,7 @@ namespace ProceduralSkyMod
 			renderer = moonBillboard.AddComponent<MeshRenderer>();
 			renderer.sharedMaterial = bundle.transform.Find("Moon").GetComponent<MeshRenderer>().sharedMaterial;
 
-			moonBillboard.transform.SetParent(dsMaster.transform);
+			moonBillboard.transform.SetParent(psMaster.transform);
 			moonBillboard.transform.ResetLocal();
 			moonBillboard.transform.localScale = Vector3.one * 5;
 			moonBillboard.layer = 31;
@@ -153,7 +155,8 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");
 #endif
 			// assign skyboxNight after sun is positioned to get correct sun rotation
-			skyManager.SkyboxNight = dsSkyboxNight.transform;
+			skyManager.SkyboxNight = skyboxNight.transform;
+			skyManager.SunPivot = sunPivot.transform;
 			skyManager.Sun = dirLight;
 
 			skyManager.CloudPlane = cloudPlane.transform;
