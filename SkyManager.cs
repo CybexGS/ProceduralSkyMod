@@ -38,6 +38,7 @@ namespace ProceduralSkyMod
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
 			SkyboxNight.Rotate(Vector3.right, -latitude);
+			MoonBillboard.Rotate(Vector3.forward, 180f);
 
 			StartCoroutine(WeatherSource.CloudChanger());
 		}
@@ -50,7 +51,7 @@ namespace ProceduralSkyMod
 			// daily rotation of skybox night
 			SkyboxNight.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta, Space.Self);
 
-			// daily rotation sun including correcting reduction for year progress
+			// daily rotation of the sun including correcting reduction for year progress
 			SunPivot.Rotate(Vector3.forward, 360f * TimeSource.DayProgressDelta - 360f * TimeSource.YearProgressDelta, Space.Self);
 			// yearly rotation of sun pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of sun's relative position
 			SunPivot.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1), SunPivot.eulerAngles.y, SunPivot.eulerAngles.z));
@@ -61,7 +62,7 @@ namespace ProceduralSkyMod
 			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
 			MoonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, MoonBillboard.eulerAngles.y, MoonBillboard.eulerAngles.z));
 
-			Debug.Log(string.Format("SunPivot: {0} | MoonPivot: {1} | YP: {2}", SunPivot.eulerAngles, MoonBillboard.eulerAngles, TimeSource.YearProgress));
+			//Debug.Log(string.Format("SunPivot: {0} | MoonPivot: {1} | YP: {2}", SunPivot.eulerAngles, MoonBillboard.eulerAngles, TimeSource.YearProgress));
 
 			// movement
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;
@@ -75,6 +76,8 @@ namespace ProceduralSkyMod
 			StarMaterial.SetFloat("_Visibility", (-Sun.intensity + 1) * .01f);
 
 			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, Sun.intensity));
+			// gives aproximate moon phase
+			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(SunPivot.right, MoonBillboard.right, SunPivot.forward) / 180);
 			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, Sun.intensity));
 
 			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, Sun.intensity));
