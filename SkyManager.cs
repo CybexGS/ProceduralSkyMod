@@ -61,6 +61,7 @@ namespace ProceduralSkyMod
 			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
 			MoonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, MoonBillboard.eulerAngles.y, MoonBillboard.eulerAngles.z));
 
+			Debug.Log(string.Format("SunPivot: {0} | MoonPivot: {1} | YP: {2}", SunPivot.eulerAngles, MoonBillboard.eulerAngles, TimeSource.YearProgress));
 
 			// movement
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;
