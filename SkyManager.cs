@@ -15,6 +15,8 @@ namespace ProceduralSkyMod
 
 		private Vector3 worldPos;
 
+		public static float DayLengthInSeconds { get => Main.settings.dayLengthMinutesRT * 60f; }
+
 		public Transform SkyboxNight { get; set; }
 		public Transform SunPivot { get; set; }
 		public Transform MoonBillboard { get; set; }
