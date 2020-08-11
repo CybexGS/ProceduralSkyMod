@@ -371,6 +371,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SkyCamConstraint.cs" />
     <Compile Include="SkyManager.cs" />
+    <Compile Include="SkySaveLoad.cs" />
     <Compile Include="TimeSource.cs" />
     <Compile Include="TransformExtensions.cs" />
     <Compile Include="WeatherSource.cs" />

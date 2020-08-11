@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.IO;
 using UnityEngine;
 
 namespace ProceduralSkyMod
@@ -39,8 +40,16 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
-			SkyboxNight.Rotate(Vector3.right, -latitude);
-			MoonBillboard.Rotate(Vector3.forward, 180f);
+			//SkyboxNight.Rotate(Vector3.right, -latitude);
+			//MoonBillboard.Rotate(Vector3.forward, 180f);
+
+			// load data from file, put this in initializer?
+			SkySaveData saveData = SkySaveLoad.Load();
+			TimeSource.DayProgress = saveData.dayProgress;
+			TimeSource.YearProgress = saveData.yearProgress;
+			SkyboxNight.localRotation = Quaternion.Euler(saveData.skyRotation);
+			SunPivot.localRotation = Quaternion.Euler(saveData.sunRotation);
+			MoonBillboard.localRotation = Quaternion.Euler(saveData.moonRotation);
 
 			StartCoroutine(WeatherSource.CloudChanger());
 		}

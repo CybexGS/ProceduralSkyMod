@@ -184,6 +184,11 @@ namespace ProceduralSkyMod
 			//RenderSettings.fog = false;
 
 #if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Sky Save...");
+#endif
+			DV.AppUtil.GamePaused += SkySaveLoad.Save;
+
+#if DEBUG
 			Debug.Log(">>> >>> >>> Cybex_ProceduralSkyMod : Initializer Finished Setup...");
 #endif
 
