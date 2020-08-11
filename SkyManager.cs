@@ -40,9 +40,6 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
-			//SkyboxNight.Rotate(Vector3.right, -latitude);
-			//MoonBillboard.Rotate(Vector3.forward, 180f);
-
 			// load data from file, put this in initializer?
 			SkySaveData saveData = SkySaveLoad.Load();
 			TimeSource.DayProgress = saveData.dayProgress;
