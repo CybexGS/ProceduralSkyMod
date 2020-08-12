@@ -20,7 +20,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Loading Asset Bundle...");
 #endif
 			// Load the asset bundle
-			AssetBundle assets = AssetBundle.LoadFromFile(Main.Path + "Resources/dynamicskymod");
+			AssetBundle assets = AssetBundle.LoadFromFile(Main.Path + "Resources/proceduralskymod");
 			GameObject bundle = assets.LoadAsset<GameObject>("Assets/Prefabs/BundleResources.prefab");
 			assets.Unload(false);
 
@@ -61,12 +61,14 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
 #endif
-			// main cam
-			mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-			mainCam.clearFlags = CameraClearFlags.Depth;
-			mainCam.cullingMask = -1;
-			mainCam.cullingMask &= ~(1 << 31);
-			//mainCam.depth = -1; // original setting
+			// clear cam
+			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
+			clearCam.transform.SetParent(mainCam.transform);
+			clearCam.transform.ResetLocal();
+			clearCam.clearFlags = CameraClearFlags.Skybox;
+			clearCam.cullingMask = 0;
+			clearCam.depth = -3;
+			clearCam.fieldOfView = mainCam.fieldOfView;
 
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
@@ -81,14 +83,34 @@ namespace ProceduralSkyMod
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
 
-			// clear cam
-			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
-			clearCam.transform.SetParent(mainCam.transform);
-			clearCam.transform.ResetLocal();
-			clearCam.clearFlags = CameraClearFlags.Skybox;
-			clearCam.cullingMask = 0;
-			clearCam.depth = -3;
-			clearCam.fieldOfView = mainCam.fieldOfView;
+			// main cam
+			mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+			mainCam.clearFlags = CameraClearFlags.Depth;
+			mainCam.cullingMask = -1;
+			mainCam.cullingMask &= ~(1 << 31);
+			//mainCam.depth = -1; // original setting
+
+			// cloud render texture cam
+			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
+			cloudRendTexCam.transform.SetParent(psMaster.transform);
+			cloudRendTexCam.transform.ResetLocal();
+			cloudRendTexCam.transform.localPosition = new Vector3(0, 3, 0);
+			cloudRendTexCam.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
+			cloudRendTexCam.clearFlags = CameraClearFlags.Color;
+			cloudRendTexCam.backgroundColor = Color.clear;
+			cloudRendTexCam.cullingMask = 0;
+			cloudRendTexCam.cullingMask |= 1 << 31;
+			cloudRendTexCam.orthographic = true;
+			cloudRendTexCam.orthographicSize = 1;
+			cloudRendTexCam.nearClipPlane = 0;
+			cloudRendTexCam.farClipPlane = 3;
+			cloudRendTexCam.renderingPath = RenderingPath.Forward;
+			cloudRendTexCam.targetTexture = WeatherSource.CloudRendTex;
+			cloudRendTexCam.useOcclusionCulling = false;
+			cloudRendTexCam.allowHDR = false;
+			cloudRendTexCam.allowMSAA = false;
+			cloudRendTexCam.allowDynamicResolution = false;
+
 
 			constraint.main = mainCam;
 			constraint.sky = skyCam;
