@@ -6,8 +6,6 @@ namespace ProceduralSkyMod
 {
 	public class SkyManager : MonoBehaviour
 	{
-		// TODO: solve cloud hopping problem
-
 		private Color ambientDay = new Color(.282f, .270f, .243f, 1f);
 		private Color ambientNight = new Color(.079f, .079f, .112f, 1f);
 		private Color defaultFog, nightFog;
@@ -49,6 +47,7 @@ namespace ProceduralSkyMod
 			MoonBillboard.localRotation = Quaternion.Euler(saveData.moonRotation);
 
 			StartCoroutine(WeatherSource.CloudChanger());
+			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
 		}
 
 		void Update ()
@@ -103,6 +102,7 @@ namespace ProceduralSkyMod
 		void OnDisable ()
 		{
 			StopCoroutine(WeatherSource.CloudChanger());
+			StopCoroutine(WeatherSource.UpdateCloudRenderTex());
 		}
 	}
 }

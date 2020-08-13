@@ -10,8 +10,17 @@ namespace ProceduralSkyMod
 {
 	public class ProceduralSkyInitializer : MonoBehaviour
 	{
+		// TODO: fix VR
+
 		private Light dirLight;
 		private Camera mainCam;
+
+		private Material _skyMaterial;
+		private AudioClip _rainAudioClip;
+		private GameObject _cloudPrefab;
+		private Material _starMaterial;
+		private GameObject _moonPrefab;
+		private GameObject _rainPrefab;
 
 		public void Init ()
 		{
@@ -21,14 +30,21 @@ namespace ProceduralSkyMod
 #endif
 			// Load the asset bundle
 			AssetBundle assets = AssetBundle.LoadFromFile(Main.Path + "Resources/proceduralskymod");
-			GameObject bundle = assets.LoadAsset<GameObject>("Assets/Prefabs/BundleResources.prefab");
+
+			_skyMaterial = assets.LoadAsset<Material>("Assets/Materials/Sky.mat");
+			_rainAudioClip = assets.LoadAsset<AudioClip>("Assets/Audio/rain-03.wav");
+			_cloudPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/CloudPlane.prefab");
+			_starMaterial = assets.LoadAsset<Material>("Assets/Materials/StarBox.mat");
+			_moonPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/Moon.prefab");
+			_rainPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/RainDrop.prefab");
+
 			assets.Unload(false);
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Skybox Material...");
 #endif
 			// Set skybox material
-			Material skyMaterial = bundle.transform.Find("Sky").GetComponent<MeshRenderer>().sharedMaterial;
+			Material skyMaterial = _skyMaterial;
 
 			skyMaterial.SetColor("_SkyTint", new Color(0.3f, 0.3f, 0.8f, 1f));
 			skyMaterial.SetColor("_GroundColor", new Color(0.369f, 0.349f, 0.341f, 1f));
@@ -61,14 +77,12 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
 #endif
-			// clear cam
-			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
-			clearCam.transform.SetParent(mainCam.transform);
-			clearCam.transform.ResetLocal();
-			clearCam.clearFlags = CameraClearFlags.Skybox;
-			clearCam.cullingMask = 0;
-			clearCam.depth = -3;
-			clearCam.fieldOfView = mainCam.fieldOfView;
+			// main cam
+			mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+			mainCam.clearFlags = CameraClearFlags.Depth;
+			mainCam.cullingMask = -1;
+			mainCam.cullingMask &= ~(1 << 31);
+			//mainCam.depth = -1; // original setting
 
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
@@ -83,12 +97,14 @@ namespace ProceduralSkyMod
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
 
-			// main cam
-			mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-			mainCam.clearFlags = CameraClearFlags.Depth;
-			mainCam.cullingMask = -1;
-			mainCam.cullingMask &= ~(1 << 31);
-			//mainCam.depth = -1; // original setting
+			// clear cam
+			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
+			clearCam.transform.SetParent(mainCam.transform);
+			clearCam.transform.ResetLocal();
+			clearCam.clearFlags = CameraClearFlags.Skybox;
+			clearCam.cullingMask = 0;
+			clearCam.depth = -3;
+			clearCam.fieldOfView = mainCam.fieldOfView;
 
 			// cloud render texture cam
 			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
@@ -105,16 +121,36 @@ namespace ProceduralSkyMod
 			cloudRendTexCam.nearClipPlane = 0;
 			cloudRendTexCam.farClipPlane = 3;
 			cloudRendTexCam.renderingPath = RenderingPath.Forward;
-			cloudRendTexCam.targetTexture = WeatherSource.CloudRendTex;
+			cloudRendTexCam.targetTexture = WeatherSource.CloudRenderTex;
 			cloudRendTexCam.useOcclusionCulling = false;
 			cloudRendTexCam.allowHDR = false;
 			cloudRendTexCam.allowMSAA = false;
 			cloudRendTexCam.allowDynamicResolution = false;
-
+			cloudRendTexCam.forceIntoRenderTexture = true;
+			WeatherSource.CloudRenderTexCam = cloudRendTexCam;
+			cloudRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
 
 			constraint.main = mainCam;
 			constraint.sky = skyCam;
 			constraint.clear = clearCam;
+
+#if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
+#endif
+			GameObject psAudio = new GameObject() { name = "ProceduralSkyAudio" };
+			psAudio.transform.SetParent(mainCam.transform);
+			WeatherSource.RainAudio = psAudio.AddComponent<AudioSource>();
+
+			WeatherSource.RainAudio.clip = _rainAudioClip;
+			WeatherSource.RainAudio.mute = false;
+			WeatherSource.RainAudio.bypassEffects = false;
+			WeatherSource.RainAudio.bypassListenerEffects = false;
+			WeatherSource.RainAudio.bypassReverbZones = false;
+			WeatherSource.RainAudio.playOnAwake = true;
+			WeatherSource.RainAudio.loop = true;
+			WeatherSource.RainAudio.priority = 128;
+			WeatherSource.RainAudio.volume = 1;
+			WeatherSource.RainAudio.Play(); // TODO control rain audio
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cloud Plane...");
@@ -122,9 +158,9 @@ namespace ProceduralSkyMod
 			GameObject cloudPlane = new GameObject();
 
 			MeshFilter filter = cloudPlane.AddComponent<MeshFilter>();
-			filter.sharedMesh = bundle.transform.Find("CloudPlane").GetComponent<MeshFilter>().sharedMesh;
+			filter.sharedMesh = _cloudPrefab.GetComponent<MeshFilter>().sharedMesh;
 			MeshRenderer renderer = cloudPlane.AddComponent<MeshRenderer>();
-			Material cloudMat = renderer.sharedMaterial = bundle.transform.Find("CloudPlane").GetComponent<MeshRenderer>().sharedMaterial;
+			Material cloudMat = renderer.sharedMaterial = _cloudPrefab.GetComponent<MeshRenderer>().sharedMaterial;
 
 			cloudPlane.transform.SetParent(psMaster.transform);
 			cloudPlane.transform.ResetLocal();
@@ -151,7 +187,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Starbox...");
 #endif
 			GameObject starBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			starBox.GetComponent<MeshRenderer>().sharedMaterial = bundle.transform.Find("StarBox").GetComponent<MeshRenderer>().sharedMaterial;
+			starBox.GetComponent<MeshRenderer>().sharedMaterial = _starMaterial;
 			starBox.transform.SetParent(skyboxNight.transform);
 			starBox.transform.ResetLocal();
 			starBox.transform.localRotation = Quaternion.Euler(new Vector3(0, 68.5f, 28.9f));
@@ -164,14 +200,38 @@ namespace ProceduralSkyMod
 			GameObject moonBillboard = new GameObject() { name = "MoonBillboard" };
 
 			filter = moonBillboard.AddComponent<MeshFilter>();
-			filter.sharedMesh = bundle.transform.Find("Moon").GetComponent<MeshFilter>().sharedMesh;
+			filter.sharedMesh = _moonPrefab.GetComponent<MeshFilter>().sharedMesh;
 			renderer = moonBillboard.AddComponent<MeshRenderer>();
-			renderer.sharedMaterial = bundle.transform.Find("Moon").GetComponent<MeshRenderer>().sharedMaterial;
+			renderer.sharedMaterial = _moonPrefab.GetComponent<MeshRenderer>().sharedMaterial;
 
 			moonBillboard.transform.SetParent(psMaster.transform);
 			moonBillboard.transform.ResetLocal();
 			moonBillboard.transform.localScale = Vector3.one * 5;
 			moonBillboard.layer = 31;
+
+#if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Rain Particle System...");
+#endif
+			GameObject psRainParticleSys = new GameObject() { name = "ProceduralSkyRainParticleSystem" };
+
+			PositionConstraint psRainParticleSysconstraint = psRainParticleSys.AddComponent<PositionConstraint>();
+			psRainParticleSysconstraint.source = mainCam.transform;
+
+			GameObject rainObj = GameObject.Instantiate(_rainPrefab);
+			rainObj.transform.SetParent(psRainParticleSys.transform);
+			rainObj.transform.ResetLocal();
+			rainObj.transform.Translate(Vector3.up * 16);
+
+			WeatherSource.RainParticleSystems = psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true);
+			for (int i = 0; i < WeatherSource.RainParticleSystems.Length; i++)
+			{
+				if (!WeatherSource.RainParticleSystems[i].gameObject.activeSelf)
+				{
+					Debug.LogWarning("Particle System was disabled");
+					WeatherSource.RainParticleSystems[i].gameObject.SetActive(true);
+				}
+				WeatherSource.RainParticleSystems[i].Play();
+			}
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");
@@ -202,9 +262,6 @@ namespace ProceduralSkyMod
 			RenderSettings.skybox = skyMaterial;
 			RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
 
-			// fog setup
-			//RenderSettings.fog = false;
-
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Save...");
 #endif
@@ -213,7 +270,6 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Cybex_ProceduralSkyMod : Initializer Finished Setup...");
 #endif
-
 			GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			go.transform.ResetLocal();
 			go.transform.position += Vector3.up * 130;
