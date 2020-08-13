@@ -50,6 +50,36 @@ namespace ProceduralSkyMod
 			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
 		}
 
+		void OnGUI ()
+		{
+			Texture2D tex;
+			Rect r;
+
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			GUILayout.Label("PS 0: " + WeatherSource.RainParticleSystems[0].gameObject.name);
+			tex = WeatherSource.RainParticleSystems[0].shape.texture;
+			r = GUILayoutUtility.GetRect(tex.width * 2, tex.height * 2, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			GUILayout.Label("PS 1: " + WeatherSource.RainParticleSystems[1].gameObject.name);
+			tex = WeatherSource.RainParticleSystems[1].shape.texture;
+			r = GUILayoutUtility.GetRect(tex.width * 2, tex.height * 2, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			GUILayout.Label("PS 2: " + WeatherSource.RainParticleSystems[2].gameObject.name);
+			tex = WeatherSource.RainParticleSystems[2].shape.texture;
+			r = GUILayoutUtility.GetRect(tex.width * 2, tex.height * 2, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			GUILayout.Label("RenderTex");
+			if (WeatherSource.CloudRenderImage2 == null) return;
+			r = GUILayoutUtility.GetRect(256, 256);
+			GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
+
+			GUILayout.EndVertical();
+		}
+
 		void Update ()
 		{
 			TimeSource.CalculateTimeProgress();

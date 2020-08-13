@@ -51,25 +51,27 @@ namespace ProceduralSkyMod
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
+
+
 				for (int i = 0; i < RainParticleSystems.Length; i++)
 				{
-					if (RainParticleSystems[i].gameObject.name == "RainDrop")
+					if (RainParticleSystems[i].gameObject.name.Contains("RainDrop"))
 					{
-						CloudRenderImage0 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
+						CloudRenderImage0 = new Texture2D(16, 16);
 						CloudRenderImage0.ReadPixels(new Rect(24, 24, 16, 16), 0, 0);
 						CloudRenderImage0.Apply();
 						shapeModule = RainParticleSystems[i].shape;
 						shapeModule.texture = CloudRenderImage0;
 					}
-					else if (RainParticleSystems[i].gameObject.name == "RainCluster")
+					else if (RainParticleSystems[i].gameObject.name.Contains("RainCluster"))
 					{
-						CloudRenderImage1 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
+						CloudRenderImage1 = new Texture2D(32, 32);
 						CloudRenderImage1.ReadPixels(new Rect(16, 16, 32, 32), 0, 0);
 						CloudRenderImage1.Apply();
 						shapeModule = RainParticleSystems[i].shape;
 						shapeModule.texture = CloudRenderImage1;
 					}
-					else // if none of above it has to be RainHaze
+					else if (RainParticleSystems[i].gameObject.name.Contains("RainHaze"))
 					{
 						CloudRenderImage2 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
 						CloudRenderImage2.ReadPixels(new Rect(0, 0, CloudRenderTex.width, CloudRenderTex.height), 0, 0);
@@ -77,6 +79,7 @@ namespace ProceduralSkyMod
 						shapeModule = RainParticleSystems[i].shape;
 						shapeModule.texture = CloudRenderImage2;
 					}
+					else Debug.LogWarning(string.Format("ProSkyMod Weather ERR 00: No name match for {0}", RainParticleSystems[i].gameObject.name));
 				}
 
 				RenderTexture.active = current;
