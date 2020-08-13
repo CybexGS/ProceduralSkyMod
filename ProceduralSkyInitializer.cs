@@ -117,7 +117,7 @@ namespace ProceduralSkyMod
 			cloudRendTexCam.cullingMask = 0;
 			cloudRendTexCam.cullingMask |= 1 << 31;
 			cloudRendTexCam.orthographic = true;
-			cloudRendTexCam.orthographicSize = 1;
+			cloudRendTexCam.orthographicSize = 3;
 			cloudRendTexCam.nearClipPlane = 0;
 			cloudRendTexCam.farClipPlane = 3;
 			cloudRendTexCam.renderingPath = RenderingPath.Forward;
@@ -223,13 +223,9 @@ namespace ProceduralSkyMod
 			rainObj.transform.Translate(Vector3.up * 16);
 
 			WeatherSource.RainParticleSystems = psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true);
+
 			for (int i = 0; i < WeatherSource.RainParticleSystems.Length; i++)
 			{
-				if (!WeatherSource.RainParticleSystems[i].gameObject.activeSelf)
-				{
-					Debug.LogWarning("Particle System was disabled");
-					WeatherSource.RainParticleSystems[i].gameObject.SetActive(true);
-				}
 				WeatherSource.RainParticleSystems[i].Play();
 			}
 

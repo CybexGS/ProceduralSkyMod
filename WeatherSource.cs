@@ -20,7 +20,9 @@ namespace ProceduralSkyMod
 			}
 			set => cloudRendTex = value;
 		}
-		public static Texture2D CloudRenderImage { get; private set; }
+		public static Texture2D CloudRenderImage0 { get; private set; }
+		public static Texture2D CloudRenderImage1 { get; private set; }
+		public static Texture2D CloudRenderImage2 { get; private set; }
 
 		public static ParticleSystem[] RainParticleSystems { get; set; }
 		private static ParticleSystem.ShapeModule shapeModule;
@@ -48,24 +50,43 @@ namespace ProceduralSkyMod
 
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
-				CloudRenderImage = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
-				CloudRenderImage.ReadPixels(new Rect(0, 0, CloudRenderTex.width, CloudRenderTex.height), 0, 0);
-				CloudRenderImage.Apply();
+
 				for (int i = 0; i < RainParticleSystems.Length; i++)
 				{
-					shapeModule = RainParticleSystems[i].shape;
-					shapeModule.texture = CloudRenderImage;
+					if (RainParticleSystems[i].gameObject.name == "RainDrop")
+					{
+						CloudRenderImage0 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
+						CloudRenderImage0.ReadPixels(new Rect(24, 24, 16, 16), 0, 0);
+						CloudRenderImage0.Apply();
+						shapeModule = RainParticleSystems[i].shape;
+						shapeModule.texture = CloudRenderImage0;
+					}
+					else if (RainParticleSystems[i].gameObject.name == "RainCluster")
+					{
+						CloudRenderImage1 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
+						CloudRenderImage1.ReadPixels(new Rect(16, 16, 32, 32), 0, 0);
+						CloudRenderImage1.Apply();
+						shapeModule = RainParticleSystems[i].shape;
+						shapeModule.texture = CloudRenderImage1;
+					}
+					else // if none of above it has to be RainHaze
+					{
+						CloudRenderImage2 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
+						CloudRenderImage2.ReadPixels(new Rect(0, 0, CloudRenderTex.width, CloudRenderTex.height), 0, 0);
+						CloudRenderImage2.Apply();
+						shapeModule = RainParticleSystems[i].shape;
+						shapeModule.texture = CloudRenderImage2;
+					}
 				}
 
 				RenderTexture.active = current;
-
 				yield return new WaitForSeconds(0.5f);
 			}
 		}
 
 		private static void SetupCloudRenderTex ()
 		{
-			cloudRendTex = new RenderTexture(32, 32, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			cloudRendTex = new RenderTexture(64, 64, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 			cloudRendTex.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
 			cloudRendTex.antiAliasing = 1;
 			cloudRendTex.depth = 0;
