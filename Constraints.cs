@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+// OnPreCull used to override VR HMD tracking
+// https://forum.unity.com/threads/how-to-disable-hmd-movement-for-second-camera.482468/#post-4282909
 namespace ProceduralSkyMod
 {
 	public class SkyCamConstraint : MonoBehaviour
@@ -13,7 +15,7 @@ namespace ProceduralSkyMod
 		public Camera sky;
 		public Camera clear;
 
-		void Update ()
+		void OnPreCull()
 		{
 			clear.transform.rotation = sky.transform.rotation = main.transform.rotation;
 			clear.fieldOfView = sky.fieldOfView = main.fieldOfView;
@@ -25,10 +27,10 @@ namespace ProceduralSkyMod
 		public Transform source = null;
 		public Transform target = null;
 
-		void Update ()
+		void OnPreCull ()
 		{
 			if (source == null) return;
-			if (target == null) this.transform.position = source.transform.position;
+			if (target == null) transform.position = source.transform.position;
 			else target.transform.position = source.transform.position;
 		}
 	}
