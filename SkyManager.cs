@@ -82,6 +82,23 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
+			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
+			//
+			//Sun.cookieSize = 1000;
+			//Texture2D tex = new Texture2D(WeatherSource.CloudRenderImage2.width, WeatherSource.CloudRenderImage2.height);
+			//Graphics.CopyTexture(WeatherSource.CloudRenderImage2, tex);
+			//for (int x = 0; x < tex.width; x++)
+			//{
+			//	for (int y = 0; y < tex.height; y++)
+			//	{
+			//		tex.SetPixel(x, y, new Color(1, 1, 1, 1 - tex.GetPixel(x, y).a));
+			//	}
+			//}
+			//tex.Apply();
+			//Sun.cookie = tex;
+			//
+			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
+
 			TimeSource.CalculateTimeProgress();
 
 			// rotation

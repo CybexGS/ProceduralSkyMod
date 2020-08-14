@@ -51,8 +51,6 @@ namespace ProceduralSkyMod
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
-
-
 				for (int i = 0; i < RainParticleSystems.Length; i++)
 				{
 					if (RainParticleSystems[i].gameObject.name.Contains("RainDrop"))
