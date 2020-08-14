@@ -84,6 +84,19 @@ namespace ProceduralSkyMod
 			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
 			MoonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, MoonBillboard.eulerAngles.y, MoonBillboard.eulerAngles.z));
 
+#if DEBUG
+			DevGUI devGui = GetComponent<DevGUI>();
+			if (devGui != null)
+			{
+				if (devGui.posOverride)
+				{
+					devGui.CalculateRotationOverride(this);
+					SkyboxNight.localRotation = devGui.skyRot;
+					SunPivot.localRotation = devGui.sunRot;
+					MoonBillboard.localRotation = devGui.moonRot;
+				}
+			}
+#endif
 
 			// movement
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;
@@ -125,15 +138,16 @@ namespace ProceduralSkyMod
 	{
 		public bool active = true;
 		public bool camLocked = false;
+		public bool posOverride = false;
 
 		private Quaternion cameraLockRot;
 
-		private bool posOverride = false;
 		private float sunRotOverride = 0;
+		public Quaternion sunRot;
 		private float skyRotOverride = 0;
+		public Quaternion skyRot;
 		private float moonRotOverride = 0;
-
-		private SkyManager skyManager = null;
+		public Quaternion moonRot;
 
 		void Update ()
 		{
@@ -150,18 +164,16 @@ namespace ProceduralSkyMod
 			}
 
 			if (camLocked) Camera.main.transform.rotation = cameraLockRot;
+		}
 
-			if (posOverride)
-			{
-				if (skyManager == null) skyManager = GetComponent<SkyManager>();
-
-				//Vector3 euler = skyManager.SunPivot.eulerAngles;
-				//skyManager.SunPivot.localRotation = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
-				//euler = skyManager.SkyboxNight.eulerAngles;
-				//skyManager.SkyboxNight.localRotation = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * skyRotOverride));
-				//euler = skyManager.MoonBillboard.eulerAngles;
-				//skyManager.MoonBillboard.localRotation = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * moonRotOverride));
-			}
+		public void CalculateRotationOverride (SkyManager mngr)
+		{
+			Vector3 euler = mngr.SunPivot.eulerAngles;
+			sunRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
+			euler = mngr.SkyboxNight.eulerAngles;
+			skyRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * skyRotOverride));
+			euler = mngr.MoonBillboard.eulerAngles;
+			moonRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * moonRotOverride));
 		}
 
 		private void SwitchCamLock (bool state = false)
@@ -175,10 +187,13 @@ namespace ProceduralSkyMod
 		{
 			if (!active) return;
 
+			GUILayout.BeginVertical();
+
+			// cloud render box
+			GUILayout.BeginVertical(GUI.skin.box);
+
 			Texture2D tex;
 			Rect r;
-
-			GUILayout.BeginVertical(GUI.skin.box);
 
 			GUILayout.Label("PS 0: " + WeatherSource.RainParticleSystems[0].gameObject.name);
 			tex = WeatherSource.RainParticleSystems[0].shape.texture;
@@ -200,24 +215,26 @@ namespace ProceduralSkyMod
 			r = GUILayoutUtility.GetRect(256, 256);
 			GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
 
-			GUILayout.Space(20);
+			GUILayout.EndVertical();
+
+			GUILayout.Space(10);
+
+			// sky override box
+			GUILayout.BeginVertical(GUI.skin.box);
+
 			posOverride = GUILayout.Toggle(posOverride, "Position Override");
 			if (!posOverride) GUI.enabled = false;
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Sun Pivot", GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.Label("Sun Pivot");
 			sunRotOverride = GUILayout.HorizontalSlider(sunRotOverride, 0, 1);
-			GUILayout.EndHorizontal();
+			GUILayout.Space(2);
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Starbox", GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.Label("Starbox");
 			skyRotOverride = GUILayout.HorizontalSlider(skyRotOverride, 0, 1);
-			GUILayout.EndHorizontal();
+			GUILayout.Space(2);
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Moon", GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.Label("Moon");
 			moonRotOverride = GUILayout.HorizontalSlider(moonRotOverride, 0, 1);
-			GUILayout.EndHorizontal();
 
 			GUI.enabled = true;
 
