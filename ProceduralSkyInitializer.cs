@@ -88,7 +88,6 @@ namespace ProceduralSkyMod
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
 			skyCam.transform.SetParent(psMaster.transform);
 			skyCam.transform.ResetLocal();
-			SkyCamConstraint constraint = skyCam.gameObject.AddComponent<SkyCamConstraint>();
 			skyCam.clearFlags = CameraClearFlags.Depth;
 			skyCam.cullingMask = 0;
 			skyCam.cullingMask |= 1 << 31;
@@ -105,6 +104,14 @@ namespace ProceduralSkyMod
 			clearCam.cullingMask = 0;
 			clearCam.depth = -3;
 			clearCam.fieldOfView = mainCam.fieldOfView;
+
+			SkyCamConstraint constraint = skyCam.gameObject.AddComponent<SkyCamConstraint>();
+			constraint.main = mainCam;
+			constraint.sky = skyCam;
+			constraint.clear = clearCam;
+
+			PositionConstraint overrideHMD = skyCam.gameObject.AddComponent<PositionConstraint>();
+			overrideHMD.source = psMaster.transform;
 
 			// cloud render texture cam
 			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
@@ -129,10 +136,6 @@ namespace ProceduralSkyMod
 			cloudRendTexCam.forceIntoRenderTexture = true;
 			WeatherSource.CloudRenderTexCam = cloudRendTexCam;
 			cloudRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
-
-			constraint.main = mainCam;
-			constraint.sky = skyCam;
-			constraint.clear = clearCam;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
