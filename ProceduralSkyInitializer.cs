@@ -110,7 +110,7 @@ namespace ProceduralSkyMod
 			constraint.sky = skyCam;
 			constraint.clear = clearCam;
 
-			PositionConstraint overrideHMD = skyCam.gameObject.AddComponent<PositionConstraint>();
+			PositionConstraintOnPreCull overrideHMD = skyCam.gameObject.AddComponent<PositionConstraintOnPreCull>();
 			overrideHMD.source = psMaster.transform;
 
 			// cloud render texture cam
@@ -217,7 +217,7 @@ namespace ProceduralSkyMod
 #endif
 			GameObject psRainParticleSys = new GameObject() { name = "ProceduralSkyRainParticleSystem" };
 
-			PositionConstraint psRainParticleSysconstraint = psRainParticleSys.AddComponent<PositionConstraint>();
+			PositionConstraintOnUpdate psRainParticleSysconstraint = psRainParticleSys.AddComponent<PositionConstraintOnUpdate>();
 			psRainParticleSysconstraint.source = mainCam.transform;
 
 			GameObject rainObj = GameObject.Instantiate(_rainPrefab);

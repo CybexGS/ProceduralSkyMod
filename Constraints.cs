@@ -22,12 +22,25 @@ namespace ProceduralSkyMod
 		}
 	}
 
-	public class PositionConstraint : MonoBehaviour
+	public class PositionConstraintOnPreCull : MonoBehaviour
 	{
 		public Transform source = null;
 		public Transform target = null;
 
 		void OnPreCull ()
+		{
+			if (source == null) return;
+			if (target == null) transform.position = source.transform.position;
+			else target.transform.position = source.transform.position;
+		}
+	}
+
+	public class PositionConstraintOnUpdate : MonoBehaviour
+	{
+		public Transform source = null;
+		public Transform target = null;
+
+		void Update ()
 		{
 			if (source == null) return;
 			if (target == null) transform.position = source.transform.position;
