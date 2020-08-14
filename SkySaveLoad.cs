@@ -23,16 +23,14 @@ namespace ProceduralSkyMod
 				string path = Path.Combine(Main.Path, "SkySave.json");
 				if (!File.Exists(path)) File.Create(path).Close();
 
-				SkyManager instance = GameObject.Find("ProceduralSkyMod").GetComponent<SkyManager>();
-
 				SkySaveData state = new SkySaveData();
 				state.dayProgress = TimeSource.DayProgress;
 				state.yearProgress = TimeSource.YearProgress;
-				state.skyRotation = instance.SkyboxNight.eulerAngles;
-				state.sunRotation = instance.SunPivot.eulerAngles;
-				state.moonRotation = instance.MoonBillboard.eulerAngles;
+				state.skyRotation = TimeSource.SkyboxNightRotation;
+				state.sunRotation = TimeSource.SunPivotRotation;
+				state.moonRotation = TimeSource.MoonRotation;
 
-				File.WriteAllText(path, JsonUtility.ToJson(state));
+				File.WriteAllText(path, JsonUtility.ToJson(state, true));
 
 				Debug.Log(string.Format("Saved Procedural Sky State: {0}", path));
 			}

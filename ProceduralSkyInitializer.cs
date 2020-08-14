@@ -267,6 +267,7 @@ namespace ProceduralSkyMod
 			DV.AppUtil.GamePaused += SkySaveLoad.Save;
 
 #if DEBUG
+			psMaster.AddComponent<DevGUI>();
 			Debug.Log(">>> >>> >>> Cybex_ProceduralSkyMod : Initializer Finished Setup...");
 #endif
 			GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
