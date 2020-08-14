@@ -93,8 +93,8 @@ namespace ProceduralSkyMod
 			cloudRendTex.depth = 0;
 			cloudRendTex.useMipMap = false;
 			cloudRendTex.useDynamicScale = false;
-			cloudRendTex.wrapMode = TextureWrapMode.Clamp;
-			cloudRendTex.filterMode = FilterMode.Point;
+			cloudRendTex.wrapMode = TextureWrapMode.Clamp; // use mirror if used for cloud shadows
+			cloudRendTex.filterMode = FilterMode.Point; // use billinear if used for cloud shadows
 			cloudRendTex.anisoLevel = 0;
 		}
 	}
