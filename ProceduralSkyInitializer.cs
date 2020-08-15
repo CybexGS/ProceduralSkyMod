@@ -86,8 +86,9 @@ namespace ProceduralSkyMod
 
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
-			skyCam.transform.SetParent(psMaster.transform);
-			skyCam.transform.ResetLocal();
+			GameObject skyCamGimbal = new GameObject { name = "SkyCamGimbal" };
+			skyCamGimbal.transform.SetParent(psMaster.transform, false);
+			skyCam.transform.SetParent(skyCamGimbal.transform, false);
 			skyCam.clearFlags = CameraClearFlags.Depth;
 			skyCam.cullingMask = 0;
 			skyCam.cullingMask |= 1 << 31;
@@ -95,6 +96,9 @@ namespace ProceduralSkyMod
 			skyCam.fieldOfView = mainCam.fieldOfView;
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
+			// this localScale negates VR stereo separation
+			skyCamGimbal.transform.localScale = Vector3.zero;
+			skyCamGimbal.AddComponent<PositionConstraintOnPreCull>().source = psMaster.transform;
 
 			// clear cam
 			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
@@ -107,9 +111,6 @@ namespace ProceduralSkyMod
 			constraint.main = mainCam;
 			constraint.sky = skyCam;
 			constraint.clear = clearCam;
-
-			PositionConstraintOnPreCull overrideHMD = skyCam.gameObject.AddComponent<PositionConstraintOnPreCull>();
-			overrideHMD.source = psMaster.transform;
 
 			// cloud render texture cam
 			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
