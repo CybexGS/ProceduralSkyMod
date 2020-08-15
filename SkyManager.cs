@@ -86,15 +86,12 @@ namespace ProceduralSkyMod
 
 #if DEBUG
 			DevGUI devGui = GetComponent<DevGUI>();
-			if (devGui != null)
+			if (devGui != null && devGui.posOverride)
 			{
-				if (devGui.posOverride)
-				{
-					devGui.CalculateRotationOverride(this);
-					SkyboxNight.localRotation = devGui.skyRot;
-					SunPivot.localRotation = devGui.sunRot;
-					MoonBillboard.localRotation = devGui.moonRot;
-				}
+				devGui.CalculateRotationOverride(this);
+				SkyboxNight.localRotation = devGui.skyRot;
+				SunPivot.localRotation = devGui.sunRot;
+				MoonBillboard.localRotation = devGui.moonRot;
 			}
 #endif
 
@@ -119,11 +116,27 @@ namespace ProceduralSkyMod
 
 			CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, Sun.intensity));
 			CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, Sun.intensity));
+			CloudMaterial.SetFloat("_ClearSky", WeatherSource.SkyClarity);
+#if DEBUG
+			if (devGui != null && devGui.cloudOverride)
+			{
+				CloudMaterial.SetFloat("_NScale", devGui.cloudNoiseScale);
+				CloudMaterial.SetFloat("_ClearSky", devGui.cloudClearSky);
+				CloudMaterial.SetFloat("_CloudBright", devGui.cloudBrightness);
+				CloudMaterial.SetFloat("_CloudSpeed", devGui.cloudSpeed);
+				CloudMaterial.SetFloat("_CloudChange", devGui.cloudChange);
+				CloudMaterial.SetFloat("_CloudGradient", devGui.cloudGradient);
+			}
+#endif
 
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, Sun.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
 
-			CloudMaterial.SetFloat("_ClearSky", WeatherSource.SkyClarity);
+
+			// TODO particle system
+			// - rain amount
+			// - color (fog color lightened)
+			// - audio control (calc from rain intensity and render tex over player pos)
 		}
 
 		void OnDisable ()
@@ -139,6 +152,7 @@ namespace ProceduralSkyMod
 		public bool active = true;
 		public bool camLocked = false;
 		public bool posOverride = false;
+		public bool cloudOverride = false;
 
 		private Quaternion cameraLockRot;
 
@@ -148,6 +162,8 @@ namespace ProceduralSkyMod
 		public Quaternion skyRot;
 		private float moonRotOverride = 0;
 		public Quaternion moonRot;
+
+		public float cloudNoiseScale, cloudClearSky, cloudBrightness, cloudSpeed, cloudChange, cloudGradient;
 
 		void Update ()
 		{
@@ -194,7 +210,6 @@ namespace ProceduralSkyMod
 
 			Texture2D tex;
 			Rect r;
-
 			GUILayout.Label("PS 0: " + WeatherSource.RainParticleSystems[0].gameObject.name);
 			tex = WeatherSource.RainParticleSystems[0].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
@@ -217,26 +232,92 @@ namespace ProceduralSkyMod
 
 			GUILayout.EndVertical();
 
-			GUILayout.Space(10);
 
+			GUILayout.Space(10);
 			// sky override box
 			GUILayout.BeginVertical(GUI.skin.box);
 
 			posOverride = GUILayout.Toggle(posOverride, "Position Override");
 			if (!posOverride) GUI.enabled = false;
 
+			GUILayout.BeginHorizontal();
 			GUILayout.Label("Sun Pivot");
+			GUILayout.Label(sunRotOverride.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
 			sunRotOverride = GUILayout.HorizontalSlider(sunRotOverride, 0, 1);
 			GUILayout.Space(2);
 
+			GUILayout.BeginHorizontal();
 			GUILayout.Label("Starbox");
+			GUILayout.Label(skyRotOverride.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
 			skyRotOverride = GUILayout.HorizontalSlider(skyRotOverride, 0, 1);
 			GUILayout.Space(2);
 
+			GUILayout.BeginHorizontal();
 			GUILayout.Label("Moon");
+			GUILayout.Label(moonRotOverride.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
 			moonRotOverride = GUILayout.HorizontalSlider(moonRotOverride, 0, 1);
 
 			GUI.enabled = true;
+
+			GUILayout.EndVertical();
+
+
+			GUILayout.Space(10);
+			// cloud override box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			cloudOverride = GUILayout.Toggle(cloudOverride, "Cloud Override");
+			if (!cloudOverride) GUI.enabled = false;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Noise Scale");
+			GUILayout.Label(cloudNoiseScale.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudNoiseScale = GUILayout.HorizontalSlider(cloudNoiseScale, 1, 8);
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Clear Sky");
+			GUILayout.Label(cloudClearSky.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudClearSky = GUILayout.HorizontalSlider(cloudClearSky, 0, 10);
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Brightness");
+			GUILayout.Label(cloudBrightness.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudBrightness = GUILayout.HorizontalSlider(cloudBrightness, 0, 1);
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Speed");
+			GUILayout.Label(cloudSpeed.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudSpeed = GUILayout.HorizontalSlider(cloudSpeed, 0.01f, 0.5f);
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Change");
+			GUILayout.Label(cloudChange.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudChange = GUILayout.HorizontalSlider(cloudChange, 0.1f, 0.5f);
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Gradient");
+			GUILayout.Label(cloudGradient.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			cloudGradient = GUILayout.HorizontalSlider(cloudGradient, 0, 0.5f);
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical();
+
+
 
 			GUILayout.EndVertical();
 		}
