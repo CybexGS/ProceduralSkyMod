@@ -17,7 +17,7 @@ namespace ProceduralSkyMod
 
 		void OnPreCull()
 		{
-			clear.transform.rotation = sky.transform.rotation = main.transform.rotation;
+			/*clear.transform.rotation = */sky.transform.rotation = main.transform.rotation;
 			clear.fieldOfView = sky.fieldOfView = main.fieldOfView;
 		}
 	}

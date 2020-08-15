@@ -3,6 +3,22 @@ using UnityEngine;
 
 namespace ProceduralSkyMod
 {
+	public class WeatherState
+	{
+		// name
+
+		// clear sky
+		// cloud noise scale
+		// cloud change
+		// cloud speed
+		// cloud brightness
+		// cloud gradient
+
+		// rain particle amount (rain intensity)
+
+		// fog distance
+	}
+
 	public class WeatherSource
 	{
 		private static float cloudTarget = 2, cloudCurrent = 1;
