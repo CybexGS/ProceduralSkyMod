@@ -39,7 +39,7 @@ namespace ProceduralSkyMod
 			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
 		}
 
-		void Update (float deltaSeconds)
+		void Update ()
 		{
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 			//
@@ -58,7 +58,7 @@ namespace ProceduralSkyMod
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
-			TimeSource.CalculateTimeProgress(deltaSeconds);
+			TimeSource.CalculateTimeProgress(Time.deltaTime);
 			DateToSkyMapper.ApplyDate(TimeSource.GetCurrentTime());
 
 			// rotations
