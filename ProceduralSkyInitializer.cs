@@ -98,8 +98,6 @@ namespace ProceduralSkyMod
 
 			// clear cam
 			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
-			clearCam.transform.SetParent(mainCam.transform);
-			clearCam.transform.ResetLocal();
 			clearCam.clearFlags = CameraClearFlags.Skybox;
 			clearCam.cullingMask = 0;
 			clearCam.depth = -3;
