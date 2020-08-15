@@ -41,6 +41,11 @@ namespace ProceduralSkyMod
 			assets.Unload(false);
 
 #if DEBUG
+			Debug.Log(">>> >>> >>> Loading Saved State...");
+#endif
+			SkySaveData saveData = SkySaveManager.Load();
+
+#if DEBUG
 			Debug.Log(">>> >>> >>> Setting Skybox Material...");
 #endif
 			// Set skybox material
@@ -263,7 +268,7 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Save...");
 #endif
-			DV.AppUtil.GamePaused += SkySaveLoad.Save;
+			DV.AppUtil.GamePaused += SkySaveManager.Save;
 
 #if DEBUG
 			psMaster.AddComponent<DevGUI>();

@@ -13,8 +13,6 @@ namespace ProceduralSkyMod
 
 		private Vector3 worldPos;
 
-		public static float DayLengthInSeconds { get => Main.settings.dayLengthMinutesRT * 60f; }
-
 		public Transform SkyboxNight { get; set; }
 		public Transform SunPivot { get; set; }
 		public Transform MoonBillboard { get; set; }
@@ -37,19 +35,11 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
-			// load data from file, put this in initializer?
-			SkySaveData saveData = SkySaveLoad.Load();
-			TimeSource.DayProgress = saveData.dayProgress;
-			TimeSource.YearProgress = saveData.yearProgress;
-			TimeSource.SkyboxNightRotation = saveData.skyRotation;
-			TimeSource.SunPivotRotation = saveData.sunRotation;
-			TimeSource.MoonRotation = saveData.moonRotation;
-
 			StartCoroutine(WeatherSource.CloudChanger());
 			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
 		}
 
-		void Update ()
+		void Update (float deltaSeconds)
 		{
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 			//
@@ -68,21 +58,21 @@ namespace ProceduralSkyMod
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
-			TimeSource.CalculateTimeProgress();
+			TimeSource.CalculateTimeProgress(deltaSeconds);
+			DateToSkyMapper.ApplyDate(TimeSource.GetCurrentTime());
 
 			// rotations
 			// daily rotation of skybox night
-			SkyboxNight.localRotation = Quaternion.Euler(TimeSource.SkyboxNightRotation);
+			SkyboxNight.localRotation = DateToSkyMapper.SkyboxNightRotation;
 
 			// daily rotation of the sun
-			SunPivot.localRotation = Quaternion.Euler(TimeSource.SunPivotRotation);
-			// yearly rotation of sun pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of sun's relative position
-			SunPivot.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1), SunPivot.eulerAngles.y, SunPivot.eulerAngles.z));
+			SunPivot.localRotation = DateToSkyMapper.SunPivotRotation;
+			// appropriate simulation of seasonal changes of sun's relative position
+			SunPivot.localPosition = DateToSkyMapper.SunOffset;
 
 			// daily rotation of the moon
-			MoonBillboard.localRotation = Quaternion.Euler(TimeSource.MoonRotation);
-			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
-			MoonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, MoonBillboard.eulerAngles.y, MoonBillboard.eulerAngles.z));
+			MoonBillboard.localRotation = DateToSkyMapper.MoonRotation;
+			// TODO: seasonal offset for the moon too?
 
 #if DEBUG
 			DevGUI devGui = GetComponent<DevGUI>();
