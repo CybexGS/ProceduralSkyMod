@@ -68,27 +68,21 @@ namespace ProceduralSkyMod
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
-			TimeSource.CalculateTimeProgress();
-
+			TimeSource.CalculateTimeProgress(latitude, 0);
+			
 			// rotations
-			// daily rotation of skybox night
+			// rotation of skybox night
 			SkyboxNight.localRotation = Quaternion.Euler(TimeSource.SkyboxNightRotation);
-
-			// daily rotation of the sun
+			// rotation of the sun
 			SunPivot.localRotation = Quaternion.Euler(TimeSource.SunPivotRotation);
-			// yearly rotation of sun pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of sun's relative position
-			SunPivot.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1), SunPivot.eulerAngles.y, SunPivot.eulerAngles.z));
-
-			// daily rotation of the moon
+			// rotation of the moon
 			MoonBillboard.localRotation = Quaternion.Euler(TimeSource.MoonRotation);
-			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
-			MoonBillboard.localRotation = Quaternion.Euler(new Vector3(-latitude + 23.4f * (TimeSource.YearProgress * 2 - 1) + 5.14f, MoonBillboard.eulerAngles.y, MoonBillboard.eulerAngles.z));
 
 #if DEBUG
 			DevGUI devGui = GetComponent<DevGUI>();
 			if (devGui != null && devGui.posOverride)
 			{
-				devGui.CalculateRotationOverride(this);
+				devGui.CalculateRotationOverride();
 				SkyboxNight.localRotation = devGui.skyRot;
 				SunPivot.localRotation = devGui.sunRot;
 				MoonBillboard.localRotation = devGui.moonRot;
@@ -133,7 +127,7 @@ namespace ProceduralSkyMod
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
 
 
-			// TODO particle system
+			// TODO rain particle system and audio control
 			// - rain amount
 			// - color (fog color lightened)
 			// - audio control (calc from rain intensity and render tex over player pos)
@@ -165,8 +159,12 @@ namespace ProceduralSkyMod
 
 		public float cloudNoiseScale, cloudClearSky, cloudBrightness, cloudSpeed, cloudChange, cloudGradient;
 
+		private SkyManager mngr = null;
+
 		void Update ()
 		{
+			if (mngr == null) mngr = GetComponent<SkyManager>();
+
 			if (Input.GetKeyDown(KeyCode.Keypad1))
 			{
 				active = !active;
@@ -182,7 +180,7 @@ namespace ProceduralSkyMod
 			if (camLocked) Camera.main.transform.rotation = cameraLockRot;
 		}
 
-		public void CalculateRotationOverride (SkyManager mngr)
+		public void CalculateRotationOverride ()
 		{
 			Vector3 euler = mngr.SunPivot.eulerAngles;
 			sunRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
@@ -203,7 +201,9 @@ namespace ProceduralSkyMod
 		{
 			if (!active) return;
 
-			GUILayout.BeginVertical();
+			GUILayout.BeginHorizontal();
+
+			GUILayout.BeginVertical(); // row 0 begin
 
 			// cloud render box
 			GUILayout.BeginVertical(GUI.skin.box);
@@ -230,7 +230,7 @@ namespace ProceduralSkyMod
 			r = GUILayoutUtility.GetRect(256, 256);
 			GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // cloud render box end
 
 
 			GUILayout.Space(10);
@@ -262,7 +262,7 @@ namespace ProceduralSkyMod
 
 			GUI.enabled = true;
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // sky override box end
 
 
 			GUILayout.Space(10);
@@ -315,11 +315,43 @@ namespace ProceduralSkyMod
 
 			GUI.enabled = true;
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // cloud override box end
 
 
+			GUILayout.EndVertical(); // row 0 end
+			GUILayout.Space(10);
+			GUILayout.BeginVertical(); // row 1 begin
 
-			GUILayout.EndVertical();
+			// moon observer
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			GUILayout.Label("Moon Observer");
+			GUILayout.Space(2);
+			GUILayout.Label("Transform");
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Position", GUILayout.Width(80));
+			GUILayout.Label(mngr.MoonBillboard.position.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.position.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.position.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Roatation", GUILayout.Width(80));
+			GUILayout.Label(mngr.MoonBillboard.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Scale", GUILayout.Width(80));
+			GUILayout.Label(mngr.MoonBillboard.localScale.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.localScale.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.MoonBillboard.localScale.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+
+			GUILayout.EndVertical(); // moon observer end
+
+			GUILayout.EndVertical(); // row 1 end
+
+			GUILayout.EndHorizontal();
 		}
 	}
 #endif
