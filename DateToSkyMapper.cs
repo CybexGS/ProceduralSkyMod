@@ -7,13 +7,16 @@ namespace ProceduralSkyMod
 	{
 		public static Quaternion SkyboxNightRotation { get; private set; }
 		public static Quaternion SunPivotRotation { get; private set; }
-		public static Vector3 SunOffset { get; private set; }
-		public static Quaternion MoonRotation { get; private set; }
+		public static Vector3 SunOffsetFromPath { get; private set; }
+		public static Quaternion MoonPivotRotation { get; private set; }
+		public static Vector3 MoonOffsetFromPath { get; private set; }
 		public static float DayProgress { get; private set; }
 		public static float YearProgress { get; private set; }
 
 		public static void ApplyDate(DateTime clockTime)
 		{
+			float latitude = Main.settings.latitude;
+
 			DateTime dayStart = new DateTime(clockTime.Year, clockTime.Month, clockTime.Day);
 			DateTime yearEnd = new DateTime(clockTime.Year, 12, 31);
 			int daysInYear = yearEnd.DayOfYear;
@@ -28,23 +31,41 @@ namespace ProceduralSkyMod
 			// rotating the skybox 1 extra rotation per year causes the night sky to differ between summer and winter
 			float yearlyAngle = 360 * YearProgress;
 			float dailyAngle = 360 * DayProgress + 180; // +180 swaps midnight & noon
-			SkyboxNightRotation = Quaternion.Euler(-Main.settings.latitude, 0, (dailyAngle + yearlyAngle) % 360);
-			SunPivotRotation = Quaternion.Euler(-Main.settings.latitude, 0, dailyAngle % 360);
-			SunOffset = new Vector3(0, 0, -10 * Mathf.Tan(23.4f * Mathf.PI / 180 * Mathf.Cos(2 * Mathf.PI * YearProgress)));
+			SkyboxNightRotation = Quaternion.Euler(-latitude, 0, (dailyAngle + yearlyAngle) % 360);
+
+			float sunSeasonalOffset = -23.4f * Mathf.Cos(2 * Mathf.PI * YearProgress);
+			SunPivotRotation = Quaternion.Euler(-latitude + Mathf.Lerp(sunSeasonalOffset, 0, Mathf.Abs(latitude) / 90), 0, dailyAngle % 360);
+			float sunProjectedSeasonalOffset = 10 * Mathf.Tan(Mathf.Deg2Rad * sunSeasonalOffset);
+			SunOffsetFromPath = new Vector3(0, 0, Mathf.Lerp(0, sunProjectedSeasonalOffset, Mathf.Abs(latitude) / 90));
+
 			// moon is new when rotation around self.forward is 0
-			float phaseAngle = ComputeMoonPhase(solarTime);
-			MoonRotation = Quaternion.Euler(-Main.settings.latitude + 23.4f + 5.14f, 0, (dailyAngle - phaseAngle) % 360);
+			double jSolarTime = ToJulianDays(solarTime);
+			float phaseAngle = ComputeMoonPhase(jSolarTime);
+			float precessionAngle = ComputeMoonPrecession(jSolarTime);
+			float moonSeasonalOffset = -23.4f * Mathf.Cos(2 * Mathf.PI * ((yearlyAngle + phaseAngle) % 360) / 360) - 5.14f * Mathf.Cos(2 * Mathf.PI * ((yearlyAngle + phaseAngle - precessionAngle) % 360) / 360);
+			MoonPivotRotation = Quaternion.Euler(-latitude + Mathf.Lerp(moonSeasonalOffset, 0, Mathf.Abs(latitude) / 90), 0, (dailyAngle - phaseAngle) % 360);
+			// TODO: verify moon billboard distance from camera is 10
+			float moonProjectedSeasonalOffset = 10 * Mathf.Tan(Mathf.Deg2Rad * moonSeasonalOffset);
+			MoonOffsetFromPath = new Vector3(0, 0, Mathf.Lerp(0, moonProjectedSeasonalOffset, Mathf.Abs(latitude) / 90));
 		}
 
-		// phase range is [0-360)
+		// phase range is [0-360), new moon at 0/360
 		// taken from https://www.subsystems.us/uploads/9/8/9/4/98948044/moonphase.pdf
-		private static float ComputeMoonPhase(DateTime now)
+		private static float ComputeMoonPhase(double jDays)
 		{
-			var jDays = ToJulianDays(now);
-			var jDaysSinceKnownNewMoon = jDays - 2451549.5; // known new moon on 2000 January 6
+			var jDaysSinceKnownNewMoon = jDays - jDaysOfKnownNewMoon;
 			var newMoonsSinceKnownNewMoon = jDaysSinceKnownNewMoon / 29.53;
 			var fractionOfCycleSinceLastNewMoon = newMoonsSinceKnownNewMoon % 1;
 			return (float)(360 * fractionOfCycleSinceLastNewMoon);
+		}
+
+		// precession range is [0-360), major standstill at 0/360
+		private static float ComputeMoonPrecession(double jDays)
+		{
+			var jDaysSinceKnownMajorStandstill = jDays - jDaysOfKnownMajorStandstill;
+			var majorStandstillsSinceKnownMajorStandstill = jDaysSinceKnownMajorStandstill / (jDaysPerLunarPrecession);
+			var fractionOfProcessionSinceLastMajorStandstill = majorStandstillsSinceKnownMajorStandstill % 1;
+			return (float)(360 * fractionOfProcessionSinceLastMajorStandstill);
 		}
 
 		private static double ToJulianDays(DateTime now)
@@ -58,5 +79,10 @@ namespace ProceduralSkyMod
 			int F = (int)(30.6001 * (M + 1));
 			return C + D + E + F - 1524.5 + fractionOfDaySinceMidnight;
 		}
+
+		private static readonly double jDaysOfKnownNewMoon = 2451549.5; // known new moon on 2000 January 6
+		// day of month of major standstill is unknown, but using 1st day of the month is close enough for now
+		private static readonly double jDaysOfKnownMajorStandstill = ToJulianDays(new DateTime(2006, 6, 1));
+		private static readonly double jDaysPerLunarPrecession = 18.6 * 365.25; // 18.6 years per precessions, 365.25 jdays per year
 	}
 }

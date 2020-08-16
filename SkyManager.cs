@@ -66,10 +66,10 @@ namespace ProceduralSkyMod
 			// daily rotation of the sun
 			SunPivot.localRotation = DateToSkyMapper.SunPivotRotation;
 			// appropriate simulation of seasonal changes of sun's relative position
-			SunPivot.localPosition = DateToSkyMapper.SunOffset;
+			SunPivot.localPosition = DateToSkyMapper.SunOffsetFromPath;
 
 			// daily rotation of the moon
-			MoonBillboard.localRotation = DateToSkyMapper.MoonRotation;
+			MoonBillboard.localRotation = DateToSkyMapper.MoonPivotRotation;
 			// TODO: seasonal offset for the moon too?
 
 #if DEBUG
