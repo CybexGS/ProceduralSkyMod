@@ -27,8 +27,6 @@ namespace ProceduralSkyMod
 		public float cloudGradient;
 
 		public float rainParticleStrength;
-
-		// fog distance
 	}
 
 	public delegate void CloudRenderDelegate ();

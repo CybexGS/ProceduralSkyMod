@@ -56,8 +56,10 @@ namespace ProceduralSkyMod
 		{
 			ParticleSystem.EmissionModule module = RainParticleSystems[0].emission;
 			module.rateOverTime = maxParticleEmission[0] * strength;
+
 			module = RainParticleSystems[1].emission;
 			module.rateOverTime = maxParticleEmission[1] * strength;
+
 			module = RainParticleSystems[2].emission;
 			module.rateOverTime = maxParticleEmission[2] * strength;
 
@@ -82,6 +84,18 @@ namespace ProceduralSkyMod
 			{
 				if (strength > 0) RainAudio.Play();
 			}
+		}
+
+		public static void SetRainColor (Color color)
+		{
+			color.a = 0.5f;
+
+			Material m = RainParticleSystems[0].GetComponent<ParticleSystemRenderer>().sharedMaterial;
+			m.SetColor("_Color", color);
+			m = RainParticleSystems[1].GetComponent<ParticleSystemRenderer>().sharedMaterial;
+			m.SetColor("_Color", color);
+			m = RainParticleSystems[2].GetComponent<ParticleSystemRenderer>().sharedMaterial;
+			m.SetColor("_Color", color);
 		}
 	}
 }

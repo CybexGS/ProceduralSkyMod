@@ -8,6 +8,7 @@ namespace ProceduralSkyMod
 		private Color ambientDay = new Color(.282f, .270f, .243f, 1f);
 		private Color ambientNight = new Color(.079f, .079f, .112f, 1f);
 		private Color defaultFog, nightFog;
+		private float defaultFogDensity;
 
 		public float latitude = 0f;
 
@@ -33,6 +34,7 @@ namespace ProceduralSkyMod
 		{
 			defaultFog = RenderSettings.fogColor;
 			nightFog = new Color(defaultFog.r * 0.05f, defaultFog.g * 0.05f, defaultFog.b * 0.05f, 1f);
+			defaultFogDensity = RenderSettings.fogDensity;
 
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
@@ -123,14 +125,9 @@ namespace ProceduralSkyMod
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, Sun.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
 
-
+			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrength);
 			RainController.SetRainStrength(WeatherSource.RainStrength);
-
-
-			// TODO rain particle system and audio control
-			// - rain amount
-			// - color (fog color lightened)
-			// - audio control (calc from rain intensity and render tex over player pos)
+			RainController.SetRainColor(new Color(RenderSettings.fogColor.r + 0.5f, RenderSettings.fogColor.g + 0.5f, RenderSettings.fogColor.b + 0.5f, 1));
 		}
 
 		void OnDisable ()
