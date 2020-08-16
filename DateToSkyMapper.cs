@@ -87,5 +87,7 @@ namespace ProceduralSkyMod
 		// day of month of major standstill is unknown, but using 1st day of the month is close enough for now
 		private static readonly double jDaysOfKnownMajorStandstill = ToJulianDays(new DateTime(2006, 6, 1));
 		private static readonly double jDaysPerLunarPrecession = 18.6 * 365.25; // 18.6 years per precessions, 365.25 jdays per year
+
+		public static readonly float maxProjectedSunOffset = ProceduralSkyInitializer.sunDistanceToCamera * Mathf.Tan(Mathf.Deg2Rad * 23.4f);
 	}
 }

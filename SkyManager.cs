@@ -12,8 +12,8 @@ namespace ProceduralSkyMod
 		private Vector3 worldPos;
 
 		public Transform SkyboxNight { get; set; }
-		public Transform Sun { get; set; }
-		public Transform Moon { get; set; }
+		public Transform SunPathCenter { get; set; }
+		public Transform MoonPathCenter { get; set; }
 
 		public Light SunLight { get; set; }
 		public Material StarMaterial { get; set; }
@@ -63,12 +63,12 @@ namespace ProceduralSkyMod
 			SkyboxNight.localRotation = DateToSkyMapper.SkyboxNightRotation;
 
 			// daily & seasonal rotation of the sun
-			Sun.parent.localRotation = DateToSkyMapper.SunPivotRotation;
-			Sun.localPosition = DateToSkyMapper.SunOffsetFromPath;
+			SunPathCenter.parent.localRotation = DateToSkyMapper.SunPivotRotation;
+			SunPathCenter.localPosition = DateToSkyMapper.SunOffsetFromPath;
 
 			// daily & seasonal rotation of the moon
-			Moon.parent.localRotation = DateToSkyMapper.MoonPivotRotation;
-			Moon.localPosition = DateToSkyMapper.MoonOffsetFromPath;
+			MoonPathCenter.parent.localRotation = DateToSkyMapper.MoonPivotRotation;
+			MoonPathCenter.localPosition = DateToSkyMapper.MoonOffsetFromPath;
 
 #if DEBUG
 			// TODO: update this
@@ -77,8 +77,8 @@ namespace ProceduralSkyMod
 			{
 				devGui.CalculateRotationOverride(this);
 				SkyboxNight.localRotation = devGui.skyRot;
-				Sun.localRotation = devGui.sunRot;
-				Moon.localRotation = devGui.moonRot;
+				SunPathCenter.localRotation = devGui.sunRot;
+				MoonPathCenter.localRotation = devGui.moonRot;
 			}
 #endif
 
@@ -86,16 +86,17 @@ namespace ProceduralSkyMod
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;
 			transform.position = new Vector3(worldPos.x * .001f, 0, worldPos.z * .001f);
 
-
-			Vector3 sunPos = SunLight.transform.position - transform.position;
+			Vector3 highLatitudeCorrection = SunPathCenter.parent.TransformVector(SunPathCenter.localPosition) - SunPathCenter.parent.position / DateToSkyMapper.maxProjectedSunOffset;
+			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + highLatitudeCorrection;
 			SunLight.intensity = Mathf.Clamp01(sunPos.y);
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, SunLight.intensity);
+			Debug.Log($"sun distance above sky cam {sunPos.y}");
 
 			StarMaterial.SetFloat("_Visibility", (-SunLight.intensity + 1) * .01f);
 
 			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, SunLight.intensity));
 			// gives aproximate moon phase
-			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(Sun.right, Moon.right, Sun.forward) / 180);
+			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(SunPathCenter.right, MoonPathCenter.right, SunPathCenter.forward) / 180);
 			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, SunLight.intensity));
 
 			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, SunLight.intensity));
@@ -171,11 +172,11 @@ namespace ProceduralSkyMod
 
 		public void CalculateRotationOverride (SkyManager mngr)
 		{
-			Vector3 euler = mngr.Sun.eulerAngles;
+			Vector3 euler = mngr.SunPathCenter.eulerAngles;
 			sunRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
 			euler = mngr.SkyboxNight.eulerAngles;
 			skyRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * skyRotOverride));
-			euler = mngr.Moon.eulerAngles;
+			euler = mngr.MoonPathCenter.eulerAngles;
 			moonRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * moonRotOverride));
 		}
 

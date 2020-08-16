@@ -185,9 +185,10 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Sun Position...");
 #endif
 			GameObject sunPivot = new GameObject() { name = "SunPivot" };
-			sunPivot.transform.SetParent(psMaster.transform);
-			dirLight.transform.SetParent(sunPivot.transform);
-			dirLight.transform.ResetLocal();
+			GameObject sunSlider = new GameObject() { name = "SunSlider" }; // sunSlider mimics moonBillboards in-built mesh offset
+			sunPivot.transform.SetParent(psMaster.transform, false);
+			sunSlider.transform.SetParent(sunPivot.transform, false);
+			dirLight.transform.SetParent(sunSlider.transform, false);
 			dirLight.transform.position += Vector3.up * sunDistanceToCamera;
 			dirLight.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
 
@@ -243,7 +244,7 @@ namespace ProceduralSkyMod
 #endif
 			// assign skyboxNight after sun is positioned to get correct sun rotation
 			skyManager.SkyboxNight = skyboxNight.transform;
-			skyManager.Sun = dirLight.transform;
+			skyManager.SunPathCenter = sunSlider.transform;
 			skyManager.SunLight = dirLight;
 
 			skyManager.CloudPlane = cloudPlane.transform;
@@ -256,7 +257,7 @@ namespace ProceduralSkyMod
 
 			skyManager.ClearCam = clearCam.transform;
 
-			skyManager.Moon = moonBillboard.transform;
+			skyManager.MoonPathCenter = moonBillboard.transform;
 			skyManager.MoonMaterial = moonBillboard.GetComponent<MeshRenderer>().sharedMaterial;
 
 #if DEBUG
