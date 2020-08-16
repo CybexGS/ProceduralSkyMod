@@ -5,19 +5,33 @@ namespace ProceduralSkyMod
 {
 	public class WeatherState
 	{
-		// name
+		public WeatherState (string name, float cloudClearSky, float cloudNoiseScale, float cloudChange, float cloudSpeed, float cloudBrightness, float cloudGradient, float rainParticleStrength)
+		{
+			this.name = name;
+			this.cloudClearSky = cloudClearSky;
+			this.cloudNoiseScale = cloudNoiseScale;
+			this.cloudChange = cloudChange;
+			this.cloudSpeed = cloudSpeed;
+			this.cloudBrightness = cloudBrightness;
+			this.cloudGradient = cloudGradient;
+			this.rainParticleStrength = rainParticleStrength;
+		}
 
-		// clear sky
-		// cloud noise scale
-		// cloud change
-		// cloud speed
-		// cloud brightness
-		// cloud gradient
+		public string name;
 
-		// rain particle amount (rain intensity)
+		public float cloudClearSky;
+		public float cloudNoiseScale;
+		public float cloudChange;
+		public float cloudSpeed;
+		public float cloudBrightness;
+		public float cloudGradient;
+
+		public float rainParticleStrength;
 
 		// fog distance
 	}
+
+	public delegate void CloudRenderDelegate ();
 
 	public class WeatherSource
 	{
@@ -40,10 +54,13 @@ namespace ProceduralSkyMod
 		public static Texture2D CloudRenderImage1 { get; private set; }
 		public static Texture2D CloudRenderImage2 { get; private set; }
 
-		public static ParticleSystem[] RainParticleSystems { get; set; }
-		private static ParticleSystem.ShapeModule shapeModule;
+		public static WeatherState WeatherState { get; set; }
+		public static float RainStrength { get; set; }
 
 		public static AudioSource RainAudio { get; set; }
+
+		public static event CloudRenderDelegate CloudRenderEvent;
+		public static void OnCloudRendered () { CloudRenderEvent?.Invoke(); }
 
 		public static IEnumerator CloudChanger ()
 		{
@@ -67,34 +84,17 @@ namespace ProceduralSkyMod
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
-				for (int i = 0; i < RainParticleSystems.Length; i++)
-				{
-					if (RainParticleSystems[i].gameObject.name.Contains("RainDrop"))
-					{
-						CloudRenderImage0 = new Texture2D(16, 16);
-						CloudRenderImage0.ReadPixels(new Rect(24, 24, 16, 16), 0, 0);
-						CloudRenderImage0.Apply();
-						shapeModule = RainParticleSystems[i].shape;
-						shapeModule.texture = CloudRenderImage0;
-					}
-					else if (RainParticleSystems[i].gameObject.name.Contains("RainCluster"))
-					{
-						CloudRenderImage1 = new Texture2D(32, 32);
-						CloudRenderImage1.ReadPixels(new Rect(16, 16, 32, 32), 0, 0);
-						CloudRenderImage1.Apply();
-						shapeModule = RainParticleSystems[i].shape;
-						shapeModule.texture = CloudRenderImage1;
-					}
-					else if (RainParticleSystems[i].gameObject.name.Contains("RainHaze"))
-					{
-						CloudRenderImage2 = new Texture2D(CloudRenderTex.width, CloudRenderTex.height);
-						CloudRenderImage2.ReadPixels(new Rect(0, 0, CloudRenderTex.width, CloudRenderTex.height), 0, 0);
-						CloudRenderImage2.Apply();
-						shapeModule = RainParticleSystems[i].shape;
-						shapeModule.texture = CloudRenderImage2;
-					}
-					else Debug.LogWarning(string.Format("ProSkyMod Weather ERR 00: No name match for {0}", RainParticleSystems[i].gameObject.name));
-				}
+				CloudRenderImage0 = new Texture2D(16, 16);
+				CloudRenderImage0.ReadPixels(new Rect(24, 24, 16, 16), 0, 0);
+				CloudRenderImage0.Apply();
+				CloudRenderImage1 = new Texture2D(32, 32);
+				CloudRenderImage1.ReadPixels(new Rect(16, 16, 32, 32), 0, 0);
+				CloudRenderImage1.Apply();
+				CloudRenderImage2 = new Texture2D(64, 64);
+				CloudRenderImage2.ReadPixels(new Rect(0, 0, 64, 64), 0, 0);
+				CloudRenderImage2.Apply();
+
+				OnCloudRendered();
 
 				RenderTexture.active = current;
 				yield return new WaitForSeconds(0.5f);

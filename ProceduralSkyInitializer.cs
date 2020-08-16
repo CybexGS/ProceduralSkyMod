@@ -224,12 +224,8 @@ namespace ProceduralSkyMod
 			rainObj.transform.ResetLocal();
 			rainObj.transform.Translate(Vector3.up * 16);
 
-			WeatherSource.RainParticleSystems = psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true);
-
-			for (int i = 0; i < WeatherSource.RainParticleSystems.Length; i++)
-			{
-				WeatherSource.RainParticleSystems[i].Play();
-			}
+			RainController.SetRainParticleSystemArray(psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true));
+			WeatherSource.CloudRenderEvent += RainController.SetShapeTextures;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");

@@ -124,6 +124,9 @@ namespace ProceduralSkyMod
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
 
 
+			RainController.SetRainStrength(WeatherSource.RainStrength);
+
+
 			// TODO rain particle system and audio control
 			// - rain amount
 			// - color (fog color lightened)
@@ -137,14 +140,15 @@ namespace ProceduralSkyMod
 		}
 	}
 
+
+
+
 #if DEBUG
 	public class DevGUI : MonoBehaviour
 	{
 		public bool active = true;
 		public bool camLocked = false;
-		public bool posOverride = false;
-		public bool cloudOverride = false;
-		public bool timeOverride = false;
+		public bool posOverride = false, cloudOverride = false, timeOverride = false, rainOverride = false;
 
 		private Quaternion cameraLockRot;
 
@@ -208,18 +212,18 @@ namespace ProceduralSkyMod
 
 			Texture2D tex;
 			Rect r;
-			GUILayout.Label("PS 0: " + WeatherSource.RainParticleSystems[0].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[0].shape.texture;
+			GUILayout.Label("PS 0: " + RainController.RainParticleSystems[0].gameObject.name);
+			tex = RainController.RainParticleSystems[0].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("PS 1: " + WeatherSource.RainParticleSystems[1].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[1].shape.texture;
+			GUILayout.Label("PS 1: " + RainController.RainParticleSystems[1].gameObject.name);
+			tex = RainController.RainParticleSystems[1].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("PS 2: " + WeatherSource.RainParticleSystems[2].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[2].shape.texture;
+			GUILayout.Label("PS 2: " + RainController.RainParticleSystems[2].gameObject.name);
+			tex = RainController.RainParticleSystems[2].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
@@ -334,37 +338,66 @@ namespace ProceduralSkyMod
 
 			GUILayout.EndVertical(); // cloud override box end
 
+			GUILayout.Space(10);
+			// rain override box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			rainOverride = GUILayout.Toggle(rainOverride, "Rain Override");
+			if (!rainOverride) GUI.enabled = false;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Rain Strength");
+			GUILayout.Label(WeatherSource.RainStrength.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			WeatherSource.RainStrength = GUILayout.HorizontalSlider(WeatherSource.RainStrength, 0, 1f);
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 0 (Rain Drop)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[0].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 1 (Rain Cluster)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[1].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 2 (Rain Haze)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[2].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical(); // rain override box end
+
 
 			GUILayout.EndVertical(); // row 0 end
 			GUILayout.Space(10);
 			GUILayout.BeginVertical(); // row 1 begin
 
-			// moon observer
-			GUILayout.BeginVertical(GUI.skin.box);
+			//// moon observer
+			//GUILayout.BeginVertical(GUI.skin.box);
 
-			GUILayout.Label("Moon Observer");
-			GUILayout.Space(2);
-			GUILayout.Label("Transform");
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Position", GUILayout.Width(80));
-			GUILayout.Label(mngr.MoonBillboard.position.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.position.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.position.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Roatation", GUILayout.Width(80));
-			GUILayout.Label(mngr.MoonBillboard.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Scale", GUILayout.Width(80));
-			GUILayout.Label(mngr.MoonBillboard.localScale.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.localScale.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.MoonBillboard.localScale.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
+			//GUILayout.Label("Moon Observer");
+			//GUILayout.Space(2);
+			//GUILayout.Label("Transform");
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Position", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.position.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.position.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.position.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Roatation", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Scale", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
 
-			GUILayout.EndVertical(); // moon observer end
+			//GUILayout.EndVertical(); // moon observer end
 
 			GUILayout.EndVertical(); // row 1 end
 
