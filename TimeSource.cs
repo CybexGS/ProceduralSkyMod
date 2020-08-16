@@ -29,21 +29,26 @@ namespace ProceduralSkyMod
 			YearProgressDelta = (newYearProgress < YearProgress) ? newYearProgress + 1 - YearProgress : newYearProgress - YearProgress;
 			YearProgress = newYearProgress;
 
+
+			float yearSunAngle = -23.4f * (Mathf.Abs(YearProgress * 2 - 1) * 2 - 1); // TODO: smoothen towards extremes with sin or cos
 			// daily rotation of skybox night
 			float snrZ = (SkyboxNightRotation.z + 360f * DayProgressDelta) % 360;
 			SkyboxNightRotation = new Vector3(SkyboxNightRotation.x, SkyboxNightRotation.y, snrZ);
 
 			// daily rotation of the sun including correcting reduction for year progress
-			float sprZ = (SunPivotRotation.z + 360f * DayProgressDelta - 360f * YearProgressDelta) % 360;
+			float sprZ = (SunPivotRotation.z + 360f * DayProgressDelta - 360f * YearProgressDelta) % 360; // TODO: correct for different day lengths during the year
 			// yearly rotation of sun pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of sun's relative position
-			float sprX = -latitude + 23.4f * (YearProgress * 2 - 1);
+			float sprX = -latitude + yearSunAngle;
 			SunPivotRotation = new Vector3(sprX, SunPivotRotation.y, sprZ);
 
 			// the moon looses per day about 50 minutes (time not angle) to the sun. 50min / 1440min = 0.03472222222... percent loss, therefore multiply by 1 - 0.03472222
 			float mrZ = (MoonRotation.z + 360f * DayProgressDelta * 0.96527778f) % 360;
 			// yearly rotation of moon pivot's x axis from -23.4 to 23.4 degrees to aproximately simulate seasonal changes of moon's relative position + 5.14 for moon's orbital offset
-			float mrX = -latitude + 23.4f * (YearProgress * 2 - 1) + 5.14f;
+			float mrX = -latitude + yearSunAngle + 5.14f;
 			MoonRotation = new Vector3(mrX, MoonRotation.y, mrZ);
+
+			// yp 0 = july, 0.5 = december, 1 = 0
+			// Mathf.Abs(YearProgress * 2 - 1) >>> yp0.0 = 1, yp0.5 = 0, yp1.0 = 1
 		}
 	}
 }

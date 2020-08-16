@@ -71,11 +71,8 @@ namespace ProceduralSkyMod
 			TimeSource.CalculateTimeProgress(latitude, 0);
 			
 			// rotations
-			// rotation of skybox night
 			SkyboxNight.localRotation = Quaternion.Euler(TimeSource.SkyboxNightRotation);
-			// rotation of the sun
 			SunPivot.localRotation = Quaternion.Euler(TimeSource.SunPivotRotation);
-			// rotation of the moon
 			MoonBillboard.localRotation = Quaternion.Euler(TimeSource.MoonRotation);
 
 #if DEBUG
@@ -147,6 +144,7 @@ namespace ProceduralSkyMod
 		public bool camLocked = false;
 		public bool posOverride = false;
 		public bool cloudOverride = false;
+		public bool timeOverride = false;
 
 		private Quaternion cameraLockRot;
 
@@ -206,7 +204,7 @@ namespace ProceduralSkyMod
 			GUILayout.BeginVertical(); // row 0 begin
 
 			// cloud render box
-			GUILayout.BeginVertical(GUI.skin.box);
+			GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(200));
 
 			Texture2D tex;
 			Rect r;
@@ -225,10 +223,10 @@ namespace ProceduralSkyMod
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("RenderTex");
-			if (WeatherSource.CloudRenderImage2 == null) return;
-			r = GUILayoutUtility.GetRect(256, 256);
-			GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
+			//GUILayout.Label("RenderTex");
+			//if (WeatherSource.CloudRenderImage2 == null) return;
+			//r = GUILayoutUtility.GetRect(256, 256);
+			//GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
 
 			GUILayout.EndVertical(); // cloud render box end
 
@@ -263,6 +261,25 @@ namespace ProceduralSkyMod
 			GUI.enabled = true;
 
 			GUILayout.EndVertical(); // sky override box end
+
+
+			GUILayout.Space(10);
+			// time override box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			timeOverride = GUILayout.Toggle(timeOverride, "Time Override");
+			if (!timeOverride) GUI.enabled = false;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Year");
+			GUILayout.Label(TimeSource.YearProgress.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			TimeSource.YearProgress = GUILayout.HorizontalSlider(TimeSource.YearProgress, 0, 1.01f);
+			GUILayout.Space(2);
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical(); // time override box end
 
 
 			GUILayout.Space(10);
