@@ -13,9 +13,9 @@ namespace ProceduralSkyMod
 	public static class SkySaveManager
 	{
 		static SkySaveManager ()
-        {
+		{
 			State = new SkySaveData();
-        }
+		}
 
 		public static void Save ()
 		{

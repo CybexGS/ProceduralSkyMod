@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace ProceduralSkyMod
 {
-    public static class DvTimeAdapter
-    {
+	public static class DvTimeAdapter
+	{
 		// TODO: re-enable integration with DvTime
 		/*
 		static DvTimeAdapter()

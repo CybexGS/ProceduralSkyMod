@@ -6,19 +6,19 @@ namespace ProceduralSkyMod
 	{
 
 		static TimeSource ()
-        {
+		{
 			// load saved date from sky save manager
 			InternalDate = SkySaveManager.State.internalDate;
 
 			if (DvTimeAdapter.Available)
-            {
+			{
 				GetCurrentTime = DvTimeAdapter.GetTime;
-            }
+			}
 			else
-            {
+			{
 				GetCurrentTime = () => InternalDate;
-            }
-        }
+			}
+		}
 
 		public static readonly Func<DateTime> GetCurrentTime;
 		public static DateTime InternalDate { get; private set; }

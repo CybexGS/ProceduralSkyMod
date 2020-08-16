@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ProceduralSkyMod
 {
-    class DateToSkyMapper
+	class DateToSkyMapper
 	{
 		public static Quaternion SkyboxNightRotation { get; private set; }
 		public static Quaternion SunPivotRotation { get; private set; }
