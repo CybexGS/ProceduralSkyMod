@@ -77,7 +77,6 @@ namespace ProceduralSkyMod
 			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
 			psMaster.transform.Reset();
 			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
-			skyManager.latitude = 44.7872f;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");

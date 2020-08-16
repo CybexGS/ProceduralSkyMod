@@ -9,8 +9,6 @@ namespace ProceduralSkyMod
 		private Color ambientNight = new Color(.079f, .079f, .112f, 1f);
 		private Color defaultFog, nightFog;
 
-		public float latitude = 0f;
-
 		private Vector3 worldPos;
 
 		public Transform SkyboxNight { get; set; }
