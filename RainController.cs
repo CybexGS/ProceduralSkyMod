@@ -7,6 +7,8 @@ namespace ProceduralSkyMod
 	public class RainController
 	{
 		public static ParticleSystem[] RainParticleSystems { get; set; }
+		public static AudioSource RainAudio { get; set; }
+		public static float VolumeMultiplier { get; set; }
 
 		private static int[] maxParticleEmission;
 		private static ParticleSystem.ShapeModule shapeModule;
@@ -52,13 +54,34 @@ namespace ProceduralSkyMod
 
 		public static void SetRainStrength (float strength)
 		{
-			Debug.Log("FOO");
 			ParticleSystem.EmissionModule module = RainParticleSystems[0].emission;
 			module.rateOverTime = maxParticleEmission[0] * strength;
 			module = RainParticleSystems[1].emission;
 			module.rateOverTime = maxParticleEmission[1] * strength;
 			module = RainParticleSystems[2].emission;
 			module.rateOverTime = maxParticleEmission[2] * strength;
+
+			if (RainAudio.isPlaying)
+			{
+				if (strength > 0)
+				{
+					//float multiplier = 1;
+					//for (int x = 0; x < WeatherSource.CloudRenderImage0.width; x++)
+					//{
+					//	for (int y = 0; y < WeatherSource.CloudRenderImage0.height; y++)
+					//	{
+					//		multiplier += Mathf.RoundToInt(WeatherSource.CloudRenderImage0.GetPixel(x, y).a);
+					//		multiplier *= 0.5f;
+					//	}
+					//}
+					RainAudio.volume = strength;// Mathf.MoveTowards(RainAudio.volume, strength * multiplier, 0.001f);
+				}
+				else RainAudio.Stop();
+			}
+			else
+			{
+				if (strength > 0) RainAudio.Play();
+			}
 		}
 	}
 }

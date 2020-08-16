@@ -362,6 +362,10 @@ namespace ProceduralSkyMod
 			GUILayout.Label("System 2 (Rain Haze)");
 			GUILayout.Label(((int)RainController.RainParticleSystems[2].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Audio Volume");
+			GUILayout.Label(RainController.RainAudio.volume.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
 
 			GUI.enabled = true;
 

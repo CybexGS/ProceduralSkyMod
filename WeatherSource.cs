@@ -55,9 +55,7 @@ namespace ProceduralSkyMod
 		public static Texture2D CloudRenderImage2 { get; private set; }
 
 		public static WeatherState WeatherState { get; set; }
-		public static float RainStrength { get; set; }
-
-		public static AudioSource RainAudio { get; set; }
+		public static float RainStrength { get; set; } = 1f;
 
 		public static event CloudRenderDelegate CloudRenderEvent;
 		public static void OnCloudRendered () { CloudRenderEvent?.Invoke(); }
