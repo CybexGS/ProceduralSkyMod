@@ -11,6 +11,8 @@ namespace ProceduralSkyMod
 	public class ProceduralSkyInitializer : MonoBehaviour
 	{
 		// TODO: fix VR
+		public const float sunDistanceToCamera = 10;
+		public const float moonDistanceToCamera = 10;
 
 		private Light dirLight;
 		private Camera mainCam;
@@ -186,7 +188,7 @@ namespace ProceduralSkyMod
 			sunPivot.transform.SetParent(psMaster.transform);
 			dirLight.transform.SetParent(sunPivot.transform);
 			dirLight.transform.ResetLocal();
-			dirLight.transform.position += Vector3.up * 10;
+			dirLight.transform.position += Vector3.up * sunDistanceToCamera;
 			dirLight.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
 
 #if DEBUG
@@ -204,15 +206,16 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Moon Billboard...");
 #endif
 			GameObject moonBillboard = new GameObject() { name = "MoonBillboard" };
+			GameObject moonPivot = new GameObject() { name = "MoonPivot" };
 
 			filter = moonBillboard.AddComponent<MeshFilter>();
 			filter.sharedMesh = _moonPrefab.GetComponent<MeshFilter>().sharedMesh;
 			renderer = moonBillboard.AddComponent<MeshRenderer>();
 			renderer.sharedMaterial = _moonPrefab.GetComponent<MeshRenderer>().sharedMaterial;
 
-			moonBillboard.transform.SetParent(psMaster.transform);
-			moonBillboard.transform.ResetLocal();
-			moonBillboard.transform.localScale = Vector3.one * 5;
+			moonPivot.transform.SetParent(psMaster.transform, false);
+			moonBillboard.transform.SetParent(moonPivot.transform, false);
+			moonBillboard.transform.localScale = Vector3.one * moonDistanceToCamera / 2; // moonBillboard mesh has in-built offset of 2
 			moonBillboard.layer = 31;
 
 #if DEBUG
@@ -240,8 +243,8 @@ namespace ProceduralSkyMod
 #endif
 			// assign skyboxNight after sun is positioned to get correct sun rotation
 			skyManager.SkyboxNight = skyboxNight.transform;
-			skyManager.SunPivot = sunPivot.transform;
-			skyManager.Sun = dirLight;
+			skyManager.Sun = dirLight.transform;
+			skyManager.SunLight = dirLight;
 
 			skyManager.CloudPlane = cloudPlane.transform;
 			skyManager.CloudMaterial = cloudMat;
@@ -253,7 +256,7 @@ namespace ProceduralSkyMod
 
 			skyManager.ClearCam = clearCam.transform;
 
-			skyManager.MoonBillboard = moonBillboard.transform;
+			skyManager.Moon = moonBillboard.transform;
 			skyManager.MoonMaterial = moonBillboard.GetComponent<MeshRenderer>().sharedMaterial;
 
 #if DEBUG

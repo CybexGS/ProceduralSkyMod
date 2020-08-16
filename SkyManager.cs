@@ -12,10 +12,10 @@ namespace ProceduralSkyMod
 		private Vector3 worldPos;
 
 		public Transform SkyboxNight { get; set; }
-		public Transform SunPivot { get; set; }
-		public Transform MoonBillboard { get; set; }
+		public Transform Sun { get; set; }
+		public Transform Moon { get; set; }
 
-		public Light Sun { get; set; }
+		public Light SunLight { get; set; }
 		public Material StarMaterial { get; set; }
 		public Material SkyMaterial { get; set; }
 		public Material CloudMaterial { get; set; }
@@ -59,27 +59,26 @@ namespace ProceduralSkyMod
 			TimeSource.CalculateTimeProgress(Time.deltaTime);
 			DateToSkyMapper.ApplyDate(TimeSource.GetCurrentTime());
 
-			// rotations
-			// daily rotation of skybox night
+			// daily & yearly rotation of skybox night
 			SkyboxNight.localRotation = DateToSkyMapper.SkyboxNightRotation;
 
-			// daily rotation of the sun
-			SunPivot.localRotation = DateToSkyMapper.SunPivotRotation;
-			// appropriate simulation of seasonal changes of sun's relative position
-			SunPivot.localPosition = DateToSkyMapper.SunOffsetFromPath;
+			// daily & seasonal rotation of the sun
+			Sun.parent.localRotation = DateToSkyMapper.SunPivotRotation;
+			Sun.localPosition = DateToSkyMapper.SunOffsetFromPath;
 
-			// daily rotation of the moon
-			MoonBillboard.localRotation = DateToSkyMapper.MoonPivotRotation;
-			// TODO: seasonal offset for the moon too?
+			// daily & seasonal rotation of the moon
+			Moon.parent.localRotation = DateToSkyMapper.MoonPivotRotation;
+			Moon.localPosition = DateToSkyMapper.MoonOffsetFromPath;
 
 #if DEBUG
+			// TODO: update this
 			DevGUI devGui = GetComponent<DevGUI>();
 			if (devGui != null && devGui.posOverride)
 			{
 				devGui.CalculateRotationOverride(this);
 				SkyboxNight.localRotation = devGui.skyRot;
-				SunPivot.localRotation = devGui.sunRot;
-				MoonBillboard.localRotation = devGui.moonRot;
+				Sun.localRotation = devGui.sunRot;
+				Moon.localRotation = devGui.moonRot;
 			}
 #endif
 
@@ -88,22 +87,22 @@ namespace ProceduralSkyMod
 			transform.position = new Vector3(worldPos.x * .001f, 0, worldPos.z * .001f);
 
 
-			Vector3 sunPos = Sun.transform.position - transform.position;
-			Sun.intensity = Mathf.Clamp01(sunPos.y);
-			Sun.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, Sun.intensity);
+			Vector3 sunPos = SunLight.transform.position - transform.position;
+			SunLight.intensity = Mathf.Clamp01(sunPos.y);
+			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, SunLight.intensity);
 
-			StarMaterial.SetFloat("_Visibility", (-Sun.intensity + 1) * .01f);
+			StarMaterial.SetFloat("_Visibility", (-SunLight.intensity + 1) * .01f);
 
-			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, Sun.intensity));
+			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, SunLight.intensity));
 			// gives aproximate moon phase
-			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(SunPivot.right, MoonBillboard.right, SunPivot.forward) / 180);
-			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, Sun.intensity));
+			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(Sun.right, Moon.right, Sun.forward) / 180);
+			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, SunLight.intensity));
 
-			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, Sun.intensity));
-			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(Sun.intensity * 10)));
+			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, SunLight.intensity));
+			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(SunLight.intensity * 10)));
 
-			CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, Sun.intensity));
-			CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, Sun.intensity));
+			CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, SunLight.intensity));
+			CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, SunLight.intensity));
 			CloudMaterial.SetFloat("_ClearSky", WeatherSource.SkyClarity);
 #if DEBUG
 			if (devGui != null && devGui.cloudOverride)
@@ -117,8 +116,8 @@ namespace ProceduralSkyMod
 			}
 #endif
 
-			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, Sun.intensity);
-			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, Sun.intensity);
+			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, SunLight.intensity);
+			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, SunLight.intensity);
 
 
 			// TODO particle system
@@ -172,11 +171,11 @@ namespace ProceduralSkyMod
 
 		public void CalculateRotationOverride (SkyManager mngr)
 		{
-			Vector3 euler = mngr.SunPivot.eulerAngles;
+			Vector3 euler = mngr.Sun.eulerAngles;
 			sunRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
 			euler = mngr.SkyboxNight.eulerAngles;
 			skyRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * skyRotOverride));
-			euler = mngr.MoonBillboard.eulerAngles;
+			euler = mngr.Moon.eulerAngles;
 			moonRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * moonRotOverride));
 		}
 

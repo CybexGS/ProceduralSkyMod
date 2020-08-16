@@ -15,6 +15,8 @@ namespace ProceduralSkyMod
 
 		public static void ApplyDate(DateTime clockTime)
 		{
+			float sunDistance = ProceduralSkyInitializer.sunDistanceToCamera;
+			float moonDistance = ProceduralSkyInitializer.moonDistanceToCamera;
 			float latitude = Main.settings.latitude;
 
 			DateTime dayStart = new DateTime(clockTime.Year, clockTime.Month, clockTime.Day);
@@ -28,24 +30,25 @@ namespace ProceduralSkyMod
 			DayProgress = (float)timeSinceMidnight.TotalHours / 24;
 			YearProgress = (clockTime.DayOfYear + DayProgress) / daysInYear;
 
+			// stars
 			// rotating the skybox 1 extra rotation per year causes the night sky to differ between summer and winter
 			float yearlyAngle = 360 * YearProgress;
 			float dailyAngle = 360 * DayProgress + 180; // +180 swaps midnight & noon
 			SkyboxNightRotation = Quaternion.Euler(-latitude, 0, (dailyAngle + yearlyAngle) % 360);
 
+			// sun
 			float sunSeasonalOffset = -23.4f * Mathf.Cos(2 * Mathf.PI * YearProgress);
 			SunPivotRotation = Quaternion.Euler(-latitude + Mathf.Lerp(sunSeasonalOffset, 0, Mathf.Abs(latitude) / 90), 0, dailyAngle % 360);
-			float sunProjectedSeasonalOffset = 10 * Mathf.Tan(Mathf.Deg2Rad * sunSeasonalOffset);
+			float sunProjectedSeasonalOffset = sunDistance * Mathf.Tan(Mathf.Deg2Rad * sunSeasonalOffset);
 			SunOffsetFromPath = new Vector3(0, 0, Mathf.Lerp(0, sunProjectedSeasonalOffset, Mathf.Abs(latitude) / 90));
 
-			// moon is new when rotation around self.forward is 0
+			// moon
 			double jSolarTime = ToJulianDays(solarTime);
 			float phaseAngle = ComputeMoonPhase(jSolarTime);
 			float precessionAngle = ComputeMoonPrecession(jSolarTime);
 			float moonSeasonalOffset = -23.4f * Mathf.Cos(2 * Mathf.PI * ((yearlyAngle + phaseAngle) % 360) / 360) - 5.14f * Mathf.Cos(2 * Mathf.PI * ((yearlyAngle + phaseAngle - precessionAngle) % 360) / 360);
 			MoonPivotRotation = Quaternion.Euler(-latitude + Mathf.Lerp(moonSeasonalOffset, 0, Mathf.Abs(latitude) / 90), 0, (dailyAngle - phaseAngle) % 360);
-			// TODO: verify moon billboard distance from camera is 10
-			float moonProjectedSeasonalOffset = 10 * Mathf.Tan(Mathf.Deg2Rad * moonSeasonalOffset);
+			float moonProjectedSeasonalOffset = moonDistance * Mathf.Tan(Mathf.Deg2Rad * moonSeasonalOffset);
 			MoonOffsetFromPath = new Vector3(0, 0, Mathf.Lerp(0, moonProjectedSeasonalOffset, Mathf.Abs(latitude) / 90));
 		}
 
