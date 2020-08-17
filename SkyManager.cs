@@ -112,7 +112,7 @@ namespace ProceduralSkyMod
 			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + highLatitudeCorrection;
 			SunLight.intensity = Mathf.Clamp01(sunPos.y);
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, SunLight.intensity);
-			Debug.Log($"sun distance above sky cam {sunPos.y}");
+			//Debug.Log($"sun distance above sky cam {sunPos.y}");
 
 			StarMaterial.SetFloat("_Visibility", (-SunLight.intensity + 1) * .01f);
 
@@ -452,31 +452,31 @@ namespace ProceduralSkyMod
 
 			//GUILayout.EndVertical(); // moon observer end
 
-			// sun observer
-			GUILayout.BeginVertical(GUI.skin.box);
+			//// sun observer
+			//GUILayout.BeginVertical(GUI.skin.box);
 
-			GUILayout.Label("Sun Observer");
-			GUILayout.Space(2);
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Pivot Rotation", GUILayout.Width(120));
-			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Slider Local Position", GUILayout.Width(120));
-			GUILayout.Label(mngr.SunPathCenter.localPosition.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunPathCenter.localPosition.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunPathCenter.localPosition.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("World Coordinates", GUILayout.Width(120));
-			GUILayout.Label(mngr.SunLight.transform.position.x.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunLight.transform.position.y.ToString("n2"), GUILayout.Width(40));
-			GUILayout.Label(mngr.SunLight.transform.position.z.ToString("n2"), GUILayout.Width(40));
-			GUILayout.EndHorizontal();
+			//GUILayout.Label("Sun Observer");
+			//GUILayout.Space(2);
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Pivot Rotation", GUILayout.Width(120));
+			//GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Slider Local Position", GUILayout.Width(120));
+			//GUILayout.Label(mngr.SunPathCenter.localPosition.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunPathCenter.localPosition.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunPathCenter.localPosition.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("World Coordinates", GUILayout.Width(120));
+			//GUILayout.Label(mngr.SunLight.transform.position.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunLight.transform.position.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.SunLight.transform.position.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
 
-			GUILayout.EndVertical(); // moon observer end
+			//GUILayout.EndVertical(); // sun observer end
 
 			GUILayout.EndVertical(); // row 1 end
 
