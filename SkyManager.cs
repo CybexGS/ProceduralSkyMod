@@ -43,7 +43,7 @@ namespace ProceduralSkyMod
 		{
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 			//
-			//Sun.cookieSize = 1000;
+			//SunLight.cookieSize = 1000;
 			//Texture2D tex = new Texture2D(WeatherSource.CloudRenderImage2.width, WeatherSource.CloudRenderImage2.height);
 			//Graphics.CopyTexture(WeatherSource.CloudRenderImage2, tex);
 			//for (int x = 0; x < tex.width; x++)
@@ -54,7 +54,7 @@ namespace ProceduralSkyMod
 			//	}
 			//}
 			//tex.Apply();
-			//Sun.cookie = tex;
+			//SunLight.cookie = tex;
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
@@ -112,7 +112,6 @@ namespace ProceduralSkyMod
 			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + highLatitudeCorrection;
 			SunLight.intensity = Mathf.Clamp01(sunPos.y);
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, SunLight.intensity);
-			//Debug.Log($"sun distance above sky cam {sunPos.y}");
 
 			StarMaterial.SetFloat("_Visibility", (-SunLight.intensity + 1) * .01f);
 
