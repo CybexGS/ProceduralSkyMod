@@ -60,8 +60,8 @@ namespace ProceduralSkyMod
 
 #if !CYBEX_TIME
 			// fauxnik time algo
-			TimeSource.CalculateTimeProgress(Time.deltaTime);
-			var currentTime = TimeSource.GetCurrentTime();
+			ProceduralSkyTimeSource.Instance.CalculateTimeProgress(Time.deltaTime);
+			var currentTime = TimeSourceAdapter.GetCurrentTime();
 #if DEBUG
 			DevGUI devGui = GetComponent<DevGUI>();
 			if (devGui != null && devGui.dateTimeOverride)

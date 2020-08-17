@@ -6,6 +6,8 @@ namespace ProceduralSkyMod
 {
 	public class Settings : UnityModManager.ModSettings, IDrawable
 	{
+		public int DayLengthSecondsRT { get => dayLengthMinutesRT * 60; }
+
 		[Draw(Label = "Day length in minutes realtime", Min = 1, Max = 3600)]
 		public int dayLengthMinutesRT = 60;
 

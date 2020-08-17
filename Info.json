@@ -3,6 +3,7 @@
     "DisplayName": "Procedural Sky",
     "Author": "Cybex, Fauxnik",
     "Version": "0.3.0",
+    "LoadAfter": [ "RedworkDE.DvTime" ],
     "AssemblyName": "ProceduralSkyMod.dll",
     "EntryMethod": "ProceduralSkyMod.Main.Load"
 }

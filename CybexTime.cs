@@ -18,7 +18,7 @@ namespace ProceduralSkyMod
 
 		public static void CalculateTimeProgress(float latitude, float longitude)
 		{
-			float newTimeProgress = (Time.time % TimeSource.DayLengthInSeconds) / TimeSource.DayLengthInSeconds;
+			float newTimeProgress = (Time.time % Main.settings.DayLengthSecondsRT) / Main.settings.DayLengthSecondsRT;
 
 			DayProgressDelta = (newTimeProgress < timeProgress) ? newTimeProgress + 1 - timeProgress : newTimeProgress - timeProgress;
 			DayProgress = (DayProgress + DayProgressDelta) % 1;

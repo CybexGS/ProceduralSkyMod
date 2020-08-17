@@ -24,7 +24,7 @@ namespace ProceduralSkyMod
 				string path = Path.Combine(Main.Path, "SkySave.json");
 				if (!File.Exists(path)) File.Create(path).Close();
 
-				State.internalDate = TimeSource.InternalDate;
+				State.internalDate = ProceduralSkyTimeSource.Instance.LocalTime;
 
 				File.WriteAllText(path, JsonUtility.ToJson(State, true));
 

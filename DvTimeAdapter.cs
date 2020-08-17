@@ -23,6 +23,7 @@ namespace ProceduralSkyMod
 		{
 			_ = CurrentTime.Time;
 			GetTime = () => CurrentTime.Time;
+			RedworkDE.DvTime.TimeUpdater.Instance.TimeSources.Add(ProceduralSkyTimeSource.Instance);
 		}
 
 		public static bool Available => GetTime != null;
