@@ -147,18 +147,16 @@ namespace ProceduralSkyMod
 #endif
 			GameObject psAudio = new GameObject() { name = "ProceduralSkyAudio" };
 			psAudio.transform.SetParent(mainCam.transform);
-			WeatherSource.RainAudio = psAudio.AddComponent<AudioSource>();
+			RainController.RainAudio = psAudio.AddComponent<AudioSource>();
 
-			WeatherSource.RainAudio.clip = _rainAudioClip;
-			WeatherSource.RainAudio.mute = false;
-			WeatherSource.RainAudio.bypassEffects = false;
-			WeatherSource.RainAudio.bypassListenerEffects = false;
-			WeatherSource.RainAudio.bypassReverbZones = false;
-			WeatherSource.RainAudio.playOnAwake = true;
-			WeatherSource.RainAudio.loop = true;
-			WeatherSource.RainAudio.priority = 128;
-			WeatherSource.RainAudio.volume = 1;
-			WeatherSource.RainAudio.Play(); // TODO control rain audio
+			RainController.RainAudio.clip = _rainAudioClip;
+			RainController.RainAudio.mute = false;
+			RainController.RainAudio.bypassEffects = false;
+			RainController.RainAudio.bypassListenerEffects = false;
+			RainController.RainAudio.bypassReverbZones = false;
+			RainController.RainAudio.playOnAwake = true;
+			RainController.RainAudio.loop = true;
+			RainController.RainAudio.priority = 128;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cloud Plane...");
@@ -232,12 +230,8 @@ namespace ProceduralSkyMod
 			rainObj.transform.ResetLocal();
 			rainObj.transform.Translate(Vector3.up * 16);
 
-			WeatherSource.RainParticleSystems = psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true);
-
-			for (int i = 0; i < WeatherSource.RainParticleSystems.Length; i++)
-			{
-				WeatherSource.RainParticleSystems[i].Play();
-			}
+			RainController.SetRainParticleSystemArray(psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true));
+			WeatherSource.CloudRenderEvent += RainController.SetShapeTextures;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");

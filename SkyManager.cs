@@ -8,6 +8,7 @@ namespace ProceduralSkyMod
 		private Color ambientDay = new Color(.282f, .270f, .243f, 1f);
 		private Color ambientNight = new Color(.079f, .079f, .112f, 1f);
 		private Color defaultFog, nightFog;
+		private float defaultFogDensity;
 
 		private Vector3 worldPos;
 
@@ -29,6 +30,7 @@ namespace ProceduralSkyMod
 		{
 			defaultFog = RenderSettings.fogColor;
 			nightFog = new Color(defaultFog.r * 0.05f, defaultFog.g * 0.05f, defaultFog.b * 0.05f, 1f);
+			defaultFogDensity = RenderSettings.fogDensity;
 
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
@@ -94,7 +96,7 @@ namespace ProceduralSkyMod
 			DevGUI devGui = GetComponent<DevGUI>();
 			if (devGui != null && devGui.posOverride)
 			{
-				devGui.CalculateRotationOverride(this);
+				devGui.CalculateRotationOverride();
 				SkyboxNight.localRotation = devGui.skyRot;
 				SunPathCenter.localRotation = devGui.sunRot;
 				MoonPathCenter.localRotation = devGui.moonRot;
@@ -140,11 +142,9 @@ namespace ProceduralSkyMod
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, SunLight.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, SunLight.intensity);
 
-
-			// TODO particle system
-			// - rain amount
-			// - color (fog color lightened)
-			// - audio control (calc from rain intensity and render tex over player pos)
+			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrength);
+			RainController.SetRainStrength(WeatherSource.RainStrength);
+			RainController.SetRainColor(new Color(RenderSettings.fogColor.r + 0.5f, RenderSettings.fogColor.g + 0.5f, RenderSettings.fogColor.b + 0.5f, 1));
 		}
 
 		void OnDisable ()
@@ -154,16 +154,17 @@ namespace ProceduralSkyMod
 		}
 	}
 
+
+
+
 #if DEBUG
 	public class DevGUI : MonoBehaviour
 	{
 		public bool active = true;
 		public bool camLocked = false;
-		public bool dateTimeOverride = false;
-		public bool posOverride = false;
-		public bool cloudOverride = false;
-
 		private Quaternion cameraLockRot;
+
+		public bool dateTimeOverride = false, posOverride = false, cloudOverride = false, timeOverride = false, rainOverride = false;
 
 		private int yearOverride = 2020;
 		private int monthOverride = 8;
@@ -180,8 +181,12 @@ namespace ProceduralSkyMod
 
 		public float cloudNoiseScale, cloudClearSky, cloudBrightness, cloudSpeed, cloudChange, cloudGradient;
 
+		private SkyManager mngr = null;
+
 		void Update ()
 		{
+			if (mngr == null) mngr = GetComponent<SkyManager>();
+
 			if (Input.GetKeyDown(KeyCode.KeypadDivide))
 			{
 				active = !active;
@@ -197,7 +202,7 @@ namespace ProceduralSkyMod
 			if (camLocked) Camera.main.transform.rotation = cameraLockRot;
 		}
 
-		public void CalculateRotationOverride (SkyManager mngr)
+		public void CalculateRotationOverride ()
 		{
 			Vector3 euler = mngr.SunPathCenter.eulerAngles;
 			sunRot = Quaternion.Euler(new Vector3(euler.x, euler.y, 360f * sunRotOverride));
@@ -218,34 +223,36 @@ namespace ProceduralSkyMod
 		{
 			if (!active) return;
 
-			GUILayout.BeginVertical();
+			GUILayout.BeginHorizontal();
+
+			GUILayout.BeginVertical(); // row 0 begin
 
 			// cloud render box
-			GUILayout.BeginVertical(GUI.skin.box);
+			GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(200));
 
 			Texture2D tex;
 			Rect r;
-			GUILayout.Label("PS 0: " + WeatherSource.RainParticleSystems[0].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[0].shape.texture;
+			GUILayout.Label("PS 0: " + RainController.RainParticleSystems[0].gameObject.name);
+			tex = RainController.RainParticleSystems[0].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("PS 1: " + WeatherSource.RainParticleSystems[1].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[1].shape.texture;
+			GUILayout.Label("PS 1: " + RainController.RainParticleSystems[1].gameObject.name);
+			tex = RainController.RainParticleSystems[1].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("PS 2: " + WeatherSource.RainParticleSystems[2].gameObject.name);
-			tex = WeatherSource.RainParticleSystems[2].shape.texture;
+			GUILayout.Label("PS 2: " + RainController.RainParticleSystems[2].gameObject.name);
+			tex = RainController.RainParticleSystems[2].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			GUILayout.Label("RenderTex");
-			if (WeatherSource.CloudRenderImage2 == null) return;
-			r = GUILayoutUtility.GetRect(256, 256);
-			GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
+			//GUILayout.Label("RenderTex");
+			//if (WeatherSource.CloudRenderImage2 == null) return;
+			//r = GUILayoutUtility.GetRect(256, 256);
+			//GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // cloud render box end
 
 #if !CYBEX_TIME
 			GUILayout.Space(10);
@@ -274,7 +281,7 @@ namespace ProceduralSkyMod
 
 			GUI.enabled = true;
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // date & time override box end
 
 #else
 			GUILayout.Space(10);
@@ -306,7 +313,26 @@ namespace ProceduralSkyMod
 
 			GUI.enabled = true;
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // sky override box end
+
+
+			GUILayout.Space(10);
+			// time override box (cybex time algo compatible)
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			timeOverride = GUILayout.Toggle(timeOverride, "Time Override");
+			if (!timeOverride) GUI.enabled = false;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Year");
+			GUILayout.Label(TimeSource.YearProgress.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			CybexTime.YearProgress = GUILayout.HorizontalSlider(CybexTime.YearProgress, 0, 1.01f);
+			GUILayout.Space(2);
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical(); // time override box end
 #endif
 
 			GUILayout.Space(10);
@@ -359,11 +385,76 @@ namespace ProceduralSkyMod
 
 			GUI.enabled = true;
 
-			GUILayout.EndVertical();
+			GUILayout.EndVertical(); // cloud override box end
+
+			GUILayout.Space(10);
+			// rain override box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			rainOverride = GUILayout.Toggle(rainOverride, "Rain Override");
+			if (!rainOverride) GUI.enabled = false;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Rain Strength");
+			GUILayout.Label(WeatherSource.RainStrength.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			WeatherSource.RainStrength = GUILayout.HorizontalSlider(WeatherSource.RainStrength, 0, 1f);
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 0 (Rain Drop)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[0].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 1 (Rain Cluster)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[1].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("System 2 (Rain Haze)");
+			GUILayout.Label(((int)RainController.RainParticleSystems[2].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Audio Volume");
+			GUILayout.Label(RainController.RainAudio.volume.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical(); // rain override box end
 
 
+			GUILayout.EndVertical(); // row 0 end
+			GUILayout.Space(10);
+			GUILayout.BeginVertical(); // row 1 begin
 
-			GUILayout.EndVertical();
+			//// moon observer
+			//GUILayout.BeginVertical(GUI.skin.box);
+
+			//GUILayout.Label("Moon Observer");
+			//GUILayout.Space(2);
+			//GUILayout.Label("Transform");
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Position", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.position.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.position.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.position.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Roatation", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Scale", GUILayout.Width(80));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.x.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.y.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.Label(mngr.MoonBillboard.localScale.z.ToString("n2"), GUILayout.Width(40));
+			//GUILayout.EndHorizontal();
+
+			//GUILayout.EndVertical(); // moon observer end
+
+			GUILayout.EndVertical(); // row 1 end
+
+			GUILayout.EndHorizontal();
 		}
 	}
 #endif

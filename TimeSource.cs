@@ -4,7 +4,6 @@ namespace ProceduralSkyMod
 {
 	public static class TimeSource
 	{
-
 		static TimeSource ()
 		{
 			// load saved date from sky save manager
