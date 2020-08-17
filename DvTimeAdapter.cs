@@ -5,8 +5,6 @@ namespace ProceduralSkyMod
 {
 	public static class DvTimeAdapter
 	{
-		// TODO: re-enable integration with DvTime
-		/*
 		static DvTimeAdapter()
 		{
 			try
@@ -26,9 +24,8 @@ namespace ProceduralSkyMod
 			_ = CurrentTime.Time;
 			GetTime = () => CurrentTime.Time;
 		}
-		*/
 
-		public static bool Available => false;// GetTime != null;
+		public static bool Available => GetTime != null;
 		public static Func<DateTime> GetTime;
 	}
 }
