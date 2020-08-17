@@ -265,11 +265,11 @@ namespace ProceduralSkyMod
 			GUILayout.Label("Date");
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Year:");
-			yearOverride = int.Parse(GUILayout.TextField(yearOverride.ToString()));
+			yearOverride = int.Parse(GUILayout.TextField(yearOverride.ToString(), GUILayout.Width(40)));
 			GUILayout.Label("Month:");
-			monthOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(monthOverride.ToString())), 1, 12);
+			monthOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(monthOverride.ToString(), GUILayout.Width(20))), 1, 12);
 			GUILayout.Label("Day:");
-			dayOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(dayOverride.ToString())), 1, new DateTime(yearOverride, monthOverride % 12 + 1, 1).AddDays(-1).Day);
+			dayOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(dayOverride.ToString(), GUILayout.Width(20))), 1, new DateTime(yearOverride, monthOverride % 12 + 1, 1).AddDays(-1).Day);
 			GUILayout.EndHorizontal();
 			GUILayout.Space(2);
 
@@ -451,6 +451,32 @@ namespace ProceduralSkyMod
 			//GUILayout.EndHorizontal();
 
 			//GUILayout.EndVertical(); // moon observer end
+
+			// sun observer
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			GUILayout.Label("Sun Observer");
+			GUILayout.Space(2);
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Pivot Rotation", GUILayout.Width(120));
+			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunPathCenter.parent.eulerAngles.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Slider Local Position", GUILayout.Width(120));
+			GUILayout.Label(mngr.SunPathCenter.localPosition.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunPathCenter.localPosition.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunPathCenter.localPosition.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("World Coordinates", GUILayout.Width(120));
+			GUILayout.Label(mngr.SunLight.transform.position.x.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunLight.transform.position.y.ToString("n2"), GUILayout.Width(40));
+			GUILayout.Label(mngr.SunLight.transform.position.z.ToString("n2"), GUILayout.Width(40));
+			GUILayout.EndHorizontal();
+
+			GUILayout.EndVertical(); // moon observer end
 
 			GUILayout.EndVertical(); // row 1 end
 
