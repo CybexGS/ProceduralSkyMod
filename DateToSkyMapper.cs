@@ -18,14 +18,15 @@ namespace ProceduralSkyMod
 			float sunDistance = ProceduralSkyInitializer.sunDistanceToCamera;
 			float moonDistance = ProceduralSkyInitializer.moonDistanceToCamera;
 			float latitude = Main.settings.latitude;
+			float longitude = Main.settings.longitude;
 
 			DateTime dayStart = new DateTime(clockTime.Year, clockTime.Month, clockTime.Day);
 			DateTime yearEnd = new DateTime(clockTime.Year, 12, 31);
 			int daysInYear = yearEnd.DayOfYear;
 
 			DateTime utcTime = clockTime - TimeZoneInfo.Local.GetUtcOffset(clockTime);
-			if (TimeZoneInfo.Local.IsDaylightSavingTime(clockTime)) { utcTime.AddHours(-1); }
-			DateTime solarTime = utcTime.AddHours(Main.settings.longitude / 15);
+			if (!TimeZoneInfo.Local.IsDaylightSavingTime(clockTime)) { longitude -= 15; } // corrects for lurch due to daylight savings time switch
+			DateTime solarTime = utcTime.AddHours(longitude / 15);
 			TimeSpan timeSinceMidnight = solarTime.Subtract(dayStart);
 			DayProgress = (float)timeSinceMidnight.TotalHours / 24;
 			YearProgress = (clockTime.DayOfYear + DayProgress) / daysInYear;
