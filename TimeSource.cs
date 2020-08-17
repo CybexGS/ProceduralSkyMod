@@ -22,7 +22,7 @@ namespace ProceduralSkyMod
 
 		public static readonly Func<DateTime> GetCurrentTime;
 		public static DateTime InternalDate { get; private set; }
-		private static float DayLengthInSeconds { get => Main.settings.dayLengthMinutesRT * 60f; }
+		public static float DayLengthInSeconds { get => Main.settings.dayLengthMinutesRT * 60f; }
 
 		public static void CalculateTimeProgress (float deltaSeconds)
 		{

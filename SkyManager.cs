@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using UnityEngine;
 
 namespace ProceduralSkyMod
@@ -56,8 +56,19 @@ namespace ProceduralSkyMod
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
+#if !CYBEX_TIME
+			// fauxnik time algo
 			TimeSource.CalculateTimeProgress(Time.deltaTime);
-			DateToSkyMapper.ApplyDate(TimeSource.GetCurrentTime());
+			var currentTime = TimeSource.GetCurrentTime();
+#if DEBUG
+			DevGUI devGui = GetComponent<DevGUI>();
+			if (devGui != null && devGui.dateTimeOverride)
+			{
+				currentTime = devGui.CurrentTime;
+			}
+#endif
+
+			DateToSkyMapper.ApplyDate(currentTime);
 
 			// daily & yearly rotation of skybox night
 			SkyboxNight.localRotation = DateToSkyMapper.SkyboxNightRotation;
@@ -69,6 +80,14 @@ namespace ProceduralSkyMod
 			// daily & seasonal rotation of the moon
 			MoonPathCenter.parent.localRotation = DateToSkyMapper.MoonPivotRotation;
 			MoonPathCenter.localPosition = DateToSkyMapper.MoonOffsetFromPath;
+#else
+			// cybex time algo
+			CybexTime.CalculateTimeProgress(Main.settings.latitude, 0);
+
+			// rotations
+			SkyboxNight.localRotation = Quaternion.Euler(CybexTime.SkyboxNightRotation);
+			SunPathCenter.parent.localRotation = Quaternion.Euler(CybexTime.SunPivotRotation);
+			MoonPathCenter.parent.localRotation = Quaternion.Euler(CybexTime.MoonRotation);
 
 #if DEBUG
 			// TODO: update this
@@ -80,6 +99,7 @@ namespace ProceduralSkyMod
 				SunPathCenter.localRotation = devGui.sunRot;
 				MoonPathCenter.localRotation = devGui.moonRot;
 			}
+#endif
 #endif
 
 			// movement
@@ -139,10 +159,17 @@ namespace ProceduralSkyMod
 	{
 		public bool active = true;
 		public bool camLocked = false;
+		public bool dateTimeOverride = false;
 		public bool posOverride = false;
 		public bool cloudOverride = false;
 
 		private Quaternion cameraLockRot;
+
+		private int yearOverride = 2020;
+		private int monthOverride = 8;
+		private int dayOverride = 16;
+		private float dayProgressOverride = 12;
+		public DateTime CurrentTime { get => new DateTime(yearOverride, monthOverride, dayOverride).AddHours(dayProgressOverride); }
 
 		private float sunRotOverride = 0;
 		public Quaternion sunRot;
@@ -155,13 +182,13 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
-			if (Input.GetKeyDown(KeyCode.Keypad1))
+			if (Input.GetKeyDown(KeyCode.KeypadDivide))
 			{
 				active = !active;
 				if (!active) SwitchCamLock(false);
 			}
 
-			if (Input.GetKeyDown(KeyCode.Keypad2))
+			if (Input.GetKeyDown(KeyCode.KeypadMultiply))
 			{
 				if (!active) return;
 				SwitchCamLock(!camLocked);
@@ -220,9 +247,38 @@ namespace ProceduralSkyMod
 
 			GUILayout.EndVertical();
 
-
+#if !CYBEX_TIME
 			GUILayout.Space(10);
-			// sky override box
+			// date & time override box (fauxnik time algo compatible)
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			dateTimeOverride = GUILayout.Toggle(dateTimeOverride, "Date/Time Override");
+			if (!dateTimeOverride) GUI.enabled = false;
+
+			GUILayout.Label("Date");
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Year:");
+			yearOverride = int.Parse(GUILayout.TextField(yearOverride.ToString()));
+			GUILayout.Label("Month:");
+			monthOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(monthOverride.ToString())), 1, 12);
+			GUILayout.Label("Day:");
+			dayOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(dayOverride.ToString())), 1, new DateTime(yearOverride, monthOverride % 12 + 1, 1).AddDays(-1).Day);
+			GUILayout.EndHorizontal();
+			GUILayout.Space(2);
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Time");
+			GUILayout.Label(dayProgressOverride.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+			dayProgressOverride = GUILayout.HorizontalSlider(dayProgressOverride, 0, 24);
+
+			GUI.enabled = true;
+
+			GUILayout.EndVertical();
+
+#else
+			GUILayout.Space(10);
+			// sky override box (cybex time algo compatible)
 			GUILayout.BeginVertical(GUI.skin.box);
 
 			posOverride = GUILayout.Toggle(posOverride, "Position Override");
@@ -251,7 +307,7 @@ namespace ProceduralSkyMod
 			GUI.enabled = true;
 
 			GUILayout.EndVertical();
-
+#endif
 
 			GUILayout.Space(10);
 			// cloud override box
