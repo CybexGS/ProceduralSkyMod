@@ -21,8 +21,14 @@ namespace ProceduralSkyMod
 
 		private static void DoInitialize()
 		{
+#if DEBUG
+			Debug.Log($">>> >>> >>> initializing DvTimeAdapter");
+#endif
 			_ = CurrentTime.Time;
 			GetTime = () => CurrentTime.Time;
+#if DEBUG
+			Debug.Log($">>> >>> >>> installing ProceduralSkyTimeSource");
+#endif
 			RedworkDE.DvTime.TimeUpdater.Instance.TimeSources.Add(ProceduralSkyTimeSource.Instance);
 		}
 
