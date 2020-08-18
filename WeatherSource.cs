@@ -88,7 +88,6 @@ namespace ProceduralSkyMod
 			{
 				RenderTexture current = RenderTexture.active;
 
-				Debug.Log("rendering clouds");
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
@@ -106,7 +105,6 @@ namespace ProceduralSkyMod
 
 				for (int i = 0; i < 16; i++)
                 {
-					Debug.Log("rendering shadows");
 					RenderTexture.active = SunShadowRenderTex;
 					SunShadowRenderTexCam.Render();
 
@@ -142,7 +140,8 @@ namespace ProceduralSkyMod
 			sunShadowRendTex.depth = 0;
 			sunShadowRendTex.useMipMap = false;
 			sunShadowRendTex.useDynamicScale = false;
-			sunShadowRendTex.wrapMode = TextureWrapMode.Mirror;
+			//sunShadowRendTex.wrapMode = TextureWrapMode.Mirror;
+			sunShadowRendTex.wrapMode = TextureWrapMode.Clamp;
 			sunShadowRendTex.filterMode = FilterMode.Bilinear;
 			sunShadowRendTex.anisoLevel = 0;
 		}

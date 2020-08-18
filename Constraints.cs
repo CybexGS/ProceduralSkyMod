@@ -54,13 +54,14 @@ namespace ProceduralSkyMod
     {
 		public Transform actor = null;
 		public Transform target = null;
+		public Vector3 offset = Vector3.zero;
 		//public Transform upSource = null;
 
 		void OnPreCull ()
         {
 			if (target == null) return;
-			if (actor == null) transform.LookAt(target, transform.up);
-			else actor.transform.LookAt(target, actor.transform.up);
+			if (actor == null) transform.LookAt(target.position + offset, transform.up);
+			else actor.transform.LookAt(target.position + offset, actor.transform.up);
         }
     }
 }

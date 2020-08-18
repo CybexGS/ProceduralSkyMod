@@ -45,12 +45,11 @@ namespace ProceduralSkyMod
 			//
 			SunLight.cookieSize = 1000;
 			Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
-			Graphics.CopyTexture(WeatherSource.SunShadowRenderImage, tex);
 			for (int x = 0; x < tex.width; x++)
 			{
 				for (int y = 0; y < tex.height; y++)
 				{
-					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - tex.GetPixel(x, y).a));
+					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
 				}
 			}
 			tex.Apply();

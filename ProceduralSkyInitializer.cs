@@ -147,14 +147,11 @@ namespace ProceduralSkyMod
 			Camera sunShadowRendTexCam = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
 			sunShadowRendTexCam.transform.SetParent(dirLight.transform);
 			sunShadowRendTexCam.transform.ResetLocal();
-			//sunShadowRendTexCam.transform.localPosition = new Vector3(0, 0, -10);
 			sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
 			sunShadowRendTexCam.clearFlags = CameraClearFlags.Color;
 			sunShadowRendTexCam.backgroundColor = Color.clear;
 			sunShadowRendTexCam.cullingMask = 0;
 			sunShadowRendTexCam.cullingMask |= 1 << 31;
-			//sunShadowRendTexCam.nearClipPlane = 0;
-			//sunShadowRendTexCam.farClipPlane = 3;
 			sunShadowRendTexCam.renderingPath = RenderingPath.Forward;
 			sunShadowRendTexCam.targetTexture = WeatherSource.SunShadowRenderTex;
 			sunShadowRendTexCam.useOcclusionCulling = false;
@@ -164,29 +161,7 @@ namespace ProceduralSkyMod
 			sunShadowRendTexCam.forceIntoRenderTexture = true;
 			WeatherSource.SunShadowRenderTexCam = sunShadowRendTexCam;
 			sunShadowRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
-			//sunShadowRendTexCam.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
-			/*
-			// sun shadow render texture cam
-			Camera sunShadowRendTexCam2 = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
-			sunShadowRendTexCam2.transform.SetParent(dirLight.transform);
-			sunShadowRendTexCam2.transform.ResetLocal();
-			//sunShadowRendTexCam2.transform.localPosition = new Vector3(0, 0, -10);
-			sunShadowRendTexCam2.clearFlags = CameraClearFlags.Color;
-			sunShadowRendTexCam2.backgroundColor = Color.clear;
-			sunShadowRendTexCam2.cullingMask = 0;
-			sunShadowRendTexCam2.cullingMask |= 1 << 31;
-			//sunShadowRendTexCam2.nearClipPlane = 0;
-			//sunShadowRendTexCam2.farClipPlane = 3;
-			sunShadowRendTexCam2.renderingPath = RenderingPath.Forward;
-			//sunShadowRendTexCam2.targetTexture = WeatherSource.SunShadowRenderTex;
-			sunShadowRendTexCam2.useOcclusionCulling = false;
-			sunShadowRendTexCam2.allowHDR = false;
-			sunShadowRendTexCam2.allowMSAA = false;
-			sunShadowRendTexCam2.allowDynamicResolution = false;
-			//sunShadowRendTexCam2.forceIntoRenderTexture = true;
-			//sunShadowRendTexCam2.enabled = false; // disable the camera, renders will be triggered by script
-			sunShadowRendTexCam2.depth = 1;
-			*/
+
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
 #endif
