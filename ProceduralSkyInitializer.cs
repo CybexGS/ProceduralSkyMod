@@ -57,6 +57,14 @@ namespace ProceduralSkyMod
 			skyMaterial.SetColor("_GroundColor", new Color(0.369f, 0.349f, 0.341f, 1f));
 
 #if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Procedural Sky Master...");
+#endif
+			// Setup dynamic sky
+			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
+			psMaster.transform.Reset();
+			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
+
+#if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Directional Light...");
 #endif
 			// Find directional light and setup
@@ -71,14 +79,7 @@ namespace ProceduralSkyMod
 			dirLight.type = LightType.Directional;
 			dirLight.shadows = LightShadows.Soft;
 			dirLight.shadowStrength = 0.9f;
-
-#if DEBUG
-			Debug.Log(">>> >>> >>> Setting Up Procedural Sky Master...");
-#endif
-			// Setup dynamic sky
-			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
-			psMaster.transform.Reset();
-			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
+			dirLight.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
@@ -142,6 +143,50 @@ namespace ProceduralSkyMod
 			WeatherSource.CloudRenderTexCam = cloudRendTexCam;
 			cloudRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
 
+			// sun shadow render texture cam
+			Camera sunShadowRendTexCam = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
+			sunShadowRendTexCam.transform.SetParent(dirLight.transform);
+			sunShadowRendTexCam.transform.ResetLocal();
+			//sunShadowRendTexCam.transform.localPosition = new Vector3(0, 0, -10);
+			sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
+			sunShadowRendTexCam.clearFlags = CameraClearFlags.Color;
+			sunShadowRendTexCam.backgroundColor = Color.clear;
+			sunShadowRendTexCam.cullingMask = 0;
+			sunShadowRendTexCam.cullingMask |= 1 << 31;
+			//sunShadowRendTexCam.nearClipPlane = 0;
+			//sunShadowRendTexCam.farClipPlane = 3;
+			sunShadowRendTexCam.renderingPath = RenderingPath.Forward;
+			sunShadowRendTexCam.targetTexture = WeatherSource.SunShadowRenderTex;
+			sunShadowRendTexCam.useOcclusionCulling = false;
+			sunShadowRendTexCam.allowHDR = false;
+			sunShadowRendTexCam.allowMSAA = false;
+			sunShadowRendTexCam.allowDynamicResolution = false;
+			sunShadowRendTexCam.forceIntoRenderTexture = true;
+			WeatherSource.SunShadowRenderTexCam = sunShadowRendTexCam;
+			sunShadowRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
+			//sunShadowRendTexCam.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
+			/*
+			// sun shadow render texture cam
+			Camera sunShadowRendTexCam2 = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
+			sunShadowRendTexCam2.transform.SetParent(dirLight.transform);
+			sunShadowRendTexCam2.transform.ResetLocal();
+			//sunShadowRendTexCam2.transform.localPosition = new Vector3(0, 0, -10);
+			sunShadowRendTexCam2.clearFlags = CameraClearFlags.Color;
+			sunShadowRendTexCam2.backgroundColor = Color.clear;
+			sunShadowRendTexCam2.cullingMask = 0;
+			sunShadowRendTexCam2.cullingMask |= 1 << 31;
+			//sunShadowRendTexCam2.nearClipPlane = 0;
+			//sunShadowRendTexCam2.farClipPlane = 3;
+			sunShadowRendTexCam2.renderingPath = RenderingPath.Forward;
+			//sunShadowRendTexCam2.targetTexture = WeatherSource.SunShadowRenderTex;
+			sunShadowRendTexCam2.useOcclusionCulling = false;
+			sunShadowRendTexCam2.allowHDR = false;
+			sunShadowRendTexCam2.allowMSAA = false;
+			sunShadowRendTexCam2.allowDynamicResolution = false;
+			//sunShadowRendTexCam2.forceIntoRenderTexture = true;
+			//sunShadowRendTexCam2.enabled = false; // disable the camera, renders will be triggered by script
+			sunShadowRendTexCam2.depth = 1;
+			*/
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
 #endif
@@ -171,7 +216,7 @@ namespace ProceduralSkyMod
 			cloudPlane.transform.SetParent(psMaster.transform);
 			cloudPlane.transform.ResetLocal();
 			cloudPlane.layer = 31;
-
+			
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Skybox Night...");
 #endif

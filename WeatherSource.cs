@@ -35,6 +35,7 @@ namespace ProceduralSkyMod
 	{
 		private static float cloudTarget = 2, cloudCurrent = 1;
 		private static RenderTexture cloudRendTex;
+		private static RenderTexture sunShadowRendTex;
 
 		public static float SkyClarity { get { cloudCurrent = Mathf.Lerp(cloudCurrent, cloudTarget, Time.deltaTime * 0.1f); return cloudCurrent; } }
 
@@ -48,9 +49,19 @@ namespace ProceduralSkyMod
 			}
 			set => cloudRendTex = value;
 		}
+		public static Camera SunShadowRenderTexCam { get; set; }
+		public static RenderTexture SunShadowRenderTex
+		{
+			get
+			{
+				if (sunShadowRendTex == null) SetupShadowRenderTex();
+				return sunShadowRendTex;
+			}
+		}
 		public static Texture2D CloudRenderImage0 { get; private set; }
 		public static Texture2D CloudRenderImage1 { get; private set; }
 		public static Texture2D CloudRenderImage2 { get; private set; }
+		public static Texture2D SunShadowRenderImage { get; private set; }
 
 		public static WeatherState WeatherState { get; set; }
 		public static float RainStrength { get; set; } = 1f;
@@ -77,6 +88,7 @@ namespace ProceduralSkyMod
 			{
 				RenderTexture current = RenderTexture.active;
 
+				Debug.Log("rendering clouds");
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
@@ -92,8 +104,20 @@ namespace ProceduralSkyMod
 
 				OnCloudRendered();
 
-				RenderTexture.active = current;
-				yield return new WaitForSeconds(0.5f);
+				for (int i = 0; i < 16; i++)
+                {
+					Debug.Log("rendering shadows");
+					RenderTexture.active = SunShadowRenderTex;
+					SunShadowRenderTexCam.Render();
+
+					SunShadowRenderImage = new Texture2D(SunShadowRenderTex.width, SunShadowRenderTex.height);
+					SunShadowRenderImage.ReadPixels(new Rect(0, 0, SunShadowRenderTex.width, SunShadowRenderTex.height), 0, 0);
+					SunShadowRenderImage.Apply();
+					
+					RenderTexture.active = current;
+					yield return new WaitForSeconds(0.03f); // 0.03s * 16 = ~0.5s
+					current = RenderTexture.active;
+                }
 			}
 		}
 
@@ -108,6 +132,19 @@ namespace ProceduralSkyMod
 			cloudRendTex.wrapMode = TextureWrapMode.Clamp; // use mirror if used for cloud shadows
 			cloudRendTex.filterMode = FilterMode.Point; // use billinear if used for cloud shadows
 			cloudRendTex.anisoLevel = 0;
+		}
+
+		private static void SetupShadowRenderTex()
+		{
+			sunShadowRendTex = new RenderTexture(64, 64, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			sunShadowRendTex.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+			sunShadowRendTex.antiAliasing = 1;
+			sunShadowRendTex.depth = 0;
+			sunShadowRendTex.useMipMap = false;
+			sunShadowRendTex.useDynamicScale = false;
+			sunShadowRendTex.wrapMode = TextureWrapMode.Mirror;
+			sunShadowRendTex.filterMode = FilterMode.Bilinear;
+			sunShadowRendTex.anisoLevel = 0;
 		}
 	}
 }

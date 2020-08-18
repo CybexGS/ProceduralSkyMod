@@ -43,18 +43,18 @@ namespace ProceduralSkyMod
 		{
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 			//
-			//SunLight.cookieSize = 1000;
-			//Texture2D tex = new Texture2D(WeatherSource.CloudRenderImage2.width, WeatherSource.CloudRenderImage2.height);
-			//Graphics.CopyTexture(WeatherSource.CloudRenderImage2, tex);
-			//for (int x = 0; x < tex.width; x++)
-			//{
-			//	for (int y = 0; y < tex.height; y++)
-			//	{
-			//		tex.SetPixel(x, y, new Color(1, 1, 1, 1 - tex.GetPixel(x, y).a));
-			//	}
-			//}
-			//tex.Apply();
-			//SunLight.cookie = tex;
+			SunLight.cookieSize = 1000;
+			Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
+			Graphics.CopyTexture(WeatherSource.SunShadowRenderImage, tex);
+			for (int x = 0; x < tex.width; x++)
+			{
+				for (int y = 0; y < tex.height; y++)
+				{
+					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - tex.GetPixel(x, y).a));
+				}
+			}
+			tex.Apply();
+			SunLight.cookie = tex;
 			//
 			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
 
@@ -245,7 +245,12 @@ namespace ProceduralSkyMod
 			tex = RainController.RainParticleSystems[2].shape.texture;
 			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
-
+			
+			GUILayout.Label("Sun Shadows");
+			tex = WeatherSource.SunShadowRenderImage;
+			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+			
 			//GUILayout.Label("RenderTex");
 			//if (WeatherSource.CloudRenderImage2 == null) return;
 			//r = GUILayoutUtility.GetRect(256, 256);
