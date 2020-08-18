@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RedworkDE.DvTime;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProceduralSkyMod
@@ -26,10 +28,14 @@ namespace ProceduralSkyMod
 #endif
 			_ = CurrentTime.Time;
 			GetTime = () => CurrentTime.Time;
+		}
+
+		public static void InstallProSkyTimeSource (List<ITimeSource> sources)
+        {
 #if DEBUG
 			Debug.Log($">>> >>> >>> installing ProceduralSkyTimeSource");
 #endif
-			RedworkDE.DvTime.TimeUpdater.Instance.TimeSources.Add(ProceduralSkyTimeSource.Instance);
+			sources.Insert(0, ProceduralSkyTimeSource.Instance);
 		}
 
 		public static bool Available => GetTime != null;
