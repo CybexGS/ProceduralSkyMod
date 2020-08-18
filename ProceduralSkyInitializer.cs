@@ -157,6 +157,7 @@ namespace ProceduralSkyMod
 			RainController.RainAudio.playOnAwake = true;
 			RainController.RainAudio.loop = true;
 			RainController.RainAudio.priority = 128;
+			RainController.RainAudio.volume = 0; // always ramp up from 0 when the game loads
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cloud Plane...");

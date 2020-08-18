@@ -67,16 +67,20 @@ namespace ProceduralSkyMod
 			{
 				if (strength > 0)
 				{
-					//float multiplier = 1;
-					//for (int x = 0; x < WeatherSource.CloudRenderImage0.width; x++)
-					//{
-					//	for (int y = 0; y < WeatherSource.CloudRenderImage0.height; y++)
-					//	{
-					//		multiplier += Mathf.RoundToInt(WeatherSource.CloudRenderImage0.GetPixel(x, y).a);
-					//		multiplier *= 0.5f;
-					//	}
-					//}
-					RainAudio.volume = strength;// Mathf.MoveTowards(RainAudio.volume, strength * multiplier, 0.001f);
+					float multiplier = 0;
+					int samples = 0;
+					for (int x = 0; x < WeatherSource.CloudRenderImage0.width; x++)
+					{
+						for (int y = 0; y < WeatherSource.CloudRenderImage0.height; y++)
+						{
+							multiplier += Mathf.RoundToInt(WeatherSource.CloudRenderImage0.GetPixel(x, y).a);
+							samples++;
+						}
+					}
+					multiplier /= samples; // percentage of sky directly above player that is raining
+					multiplier = SimplisticCompressor(multiplier, 0.125f);
+					//multiplier = SimplisticCompressor(multiplier, 0.25f);
+					RainAudio.volume = Mathf.MoveTowards(RainAudio.volume, strength * multiplier, 0.001f);
 				}
 				else RainAudio.Stop();
 			}
@@ -97,5 +101,11 @@ namespace ProceduralSkyMod
 			m = RainParticleSystems[2].GetComponent<ParticleSystemRenderer>().sharedMaterial;
 			m.SetColor("_Color", color);
 		}
+
+		private static float SimplisticCompressor(float value, float gain)
+        {
+			gain = Mathf.Clamp01(gain);
+			return value * (1 - gain) + gain;
+        }
 	}
 }
