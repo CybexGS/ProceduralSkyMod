@@ -18,6 +18,10 @@ namespace ProceduralSkyMod
 		static bool Load (UnityModManager.ModEntry modEntry)
 		{
 			try { settings = Settings.Load<Settings>(modEntry); } catch { }
+			if (DvTimeAdapter.Available)
+            {
+				RedworkDE.DvTime.TimeUpdater.RegisterTimeSource += DvTimeAdapter.InstallProSkyTimeSource;
+			}
 			Path = modEntry.Path;
 			modEntry.OnToggle = OnToggle;
 			modEntry.OnGUI = OnGUI;
