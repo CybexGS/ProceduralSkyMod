@@ -1,5 +1,9 @@
 ﻿using System;
 using UnityEngine;
+#if DEBUG
+using System.IO;
+using System.Linq;
+#endif
 
 namespace ProceduralSkyMod
 {
@@ -35,8 +39,13 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
+			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + "FALLBACK");
+			WeatherSource.TargettWeatherState = null;
+			WeatherSource.WeatherStateBlending = 0;
+
 			StartCoroutine(WeatherSource.CloudChanger());
 			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
+			StartCoroutine(ReflectionProbeUpdater.UpdateProbe());
 		}
 
 		void Update ()
@@ -123,26 +132,43 @@ namespace ProceduralSkyMod
 			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, SunLight.intensity));
 			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(SunLight.intensity * 10)));
 
-			CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, SunLight.intensity));
-			CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, SunLight.intensity));
-			CloudMaterial.SetFloat("_ClearSky", WeatherSource.SkyClarity);
+			//CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, SunLight.intensity));
+			//CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, SunLight.intensity));
+			//CloudMaterial.SetFloat("_ClearSky", WeatherSource.CloudClearSkyBlend);
+
+			CloudMaterial.SetFloat("_NScale", WeatherSource.CloudNoiseScaleBlend);
+			CloudMaterial.SetFloat("_ClearSky", WeatherSource.CloudClearSkyBlend);
+			float facC = Mathf.Lerp(.002f, 1f, SunLight.intensity);
+			CloudMaterial.SetFloat("_CloudBright", WeatherSource.CloudBrightnessBlend * facC);
+			float facG = Mathf.Lerp(.25f, 0.0f, SunLight.intensity);
+			CloudMaterial.SetFloat("_CloudGradient", WeatherSource.CloudGradientBlend + facG);
+			CloudMaterial.SetFloat("_CloudSpeed", WeatherSource.CloudSpeedBlend);
+			CloudMaterial.SetFloat("_CloudChange", WeatherSource.CloudChangeBlend);
 #if DEBUG
 			if (devGui != null && devGui.cloudOverride)
 			{
-				CloudMaterial.SetFloat("_NScale", devGui.cloudNoiseScale);
-				CloudMaterial.SetFloat("_ClearSky", devGui.cloudClearSky);
-				CloudMaterial.SetFloat("_CloudBright", devGui.cloudBrightness);
-				CloudMaterial.SetFloat("_CloudSpeed", devGui.cloudSpeed);
-				CloudMaterial.SetFloat("_CloudChange", devGui.cloudChange);
-				CloudMaterial.SetFloat("_CloudGradient", devGui.cloudGradient);
+				CloudMaterial.SetFloat("_NScale", devGui.loadedWeatherState.cloudNoiseScale);
+				CloudMaterial.SetFloat("_ClearSky", devGui.loadedWeatherState.cloudClearSky);
+				CloudMaterial.SetFloat("_CloudBright", devGui.loadedWeatherState.cloudBrightness * facC);
+				CloudMaterial.SetFloat("_CloudGradient", devGui.loadedWeatherState.cloudGradient + facG);
+				CloudMaterial.SetFloat("_CloudSpeed", devGui.loadedWeatherState.cloudSpeed);
+				CloudMaterial.SetFloat("_CloudChange", devGui.loadedWeatherState.cloudChange);
 			}
 #endif
 
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, SunLight.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, SunLight.intensity);
 
-			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrength);
-			RainController.SetRainStrength(WeatherSource.RainStrength);
+			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrengthBlend);
+			RainController.SetRainStrength(WeatherSource.RainStrengthBlend);
+#if DEBUG
+			if (devGui != null && devGui.rainOverride)
+			{
+				RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, devGui.loadedWeatherState.rainParticleStrength);
+				RainController.SetRainStrength(devGui.loadedWeatherState.rainParticleStrength);
+			}
+#endif
+
 			RainController.SetRainColor(new Color(RenderSettings.fogColor.r + 0.5f, RenderSettings.fogColor.g + 0.5f, RenderSettings.fogColor.b + 0.5f, 1));
 		}
 
@@ -150,15 +176,17 @@ namespace ProceduralSkyMod
 		{
 			StopCoroutine(WeatherSource.CloudChanger());
 			StopCoroutine(WeatherSource.UpdateCloudRenderTex());
+			StopCoroutine(ReflectionProbeUpdater.UpdateProbe());
 		}
 	}
-
 
 
 
 #if DEBUG
 	public class DevGUI : MonoBehaviour
 	{
+		private Color defaultGUIColor;
+
 		public bool active = true;
 		public bool camLocked = false;
 		private Quaternion cameraLockRot;
@@ -178,9 +206,29 @@ namespace ProceduralSkyMod
 		private float moonRotOverride = 0;
 		public Quaternion moonRot;
 
-		public float cloudNoiseScale, cloudClearSky, cloudBrightness, cloudSpeed, cloudChange, cloudGradient;
+		public WeatherState loadedWeatherState;
+		private bool creatingNewWeatherStateFile;
+		private string newWeatherFileName;
+		private bool newFileNameError;
+		private readonly char[] forbiddenChar = new char[] { '.', '<','>',':',',',';','"','|','?','*', Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar };
+		private bool showFileSelection;
 
 		private SkyManager mngr = null;
+
+		void Start ()
+		{
+			if (!Directory.Exists(WeatherSource.XMLWeatherStatePath)) Directory.CreateDirectory(WeatherSource.XMLWeatherStatePath);
+
+			try
+			{
+				LoadWeatherStateFromXML(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + "FALLBACK");
+			}
+			catch (Exception ex)
+			{
+				Debug.LogWarning($"Failed to load WeatherState \n {ex}");
+				throw;
+			}
+		}
 
 		void Update ()
 		{
@@ -218,11 +266,20 @@ namespace ProceduralSkyMod
 			Cursor.lockState = (state) ? CursorLockMode.None : CursorLockMode.Locked;
 		}
 
+		private void LoadWeatherStateFromXML (string filepath)
+		{
+			if (!string.IsNullOrEmpty(filepath)) loadedWeatherState = WeatherState.LoadFromXML(filepath);
+			showFileSelection = false;
+		}
+
 		void OnGUI ()
 		{
 			if (!active) return;
+			Event guiEvent = Event.current;
+			defaultGUIColor = GUI.color;
 
 			GUILayout.BeginHorizontal();
+			GUILayout.Space(3);
 
 			GUILayout.BeginVertical(); // row 0 begin
 
@@ -254,7 +311,6 @@ namespace ProceduralSkyMod
 			GUILayout.EndVertical(); // cloud render box end
 
 #if !CYBEX_TIME
-			GUILayout.Space(10);
 			// date & time override box (fauxnik time algo compatible)
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -283,7 +339,6 @@ namespace ProceduralSkyMod
 			GUILayout.EndVertical(); // date & time override box end
 
 #else
-			GUILayout.Space(10);
 			// sky override box (cybex time algo compatible)
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -315,7 +370,6 @@ namespace ProceduralSkyMod
 			GUILayout.EndVertical(); // sky override box end
 
 
-			GUILayout.Space(10);
 			// time override box (cybex time algo compatible)
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -334,7 +388,6 @@ namespace ProceduralSkyMod
 			GUILayout.EndVertical(); // time override box end
 #endif
 
-			GUILayout.Space(10);
 			// cloud override box
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -343,50 +396,55 @@ namespace ProceduralSkyMod
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Noise Scale");
+			float cloudNoiseScale = (cloudOverride) ? loadedWeatherState.cloudNoiseScale : WeatherSource.CloudNoiseScaleBlend;
 			GUILayout.Label(cloudNoiseScale.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudNoiseScale = GUILayout.HorizontalSlider(cloudNoiseScale, 1, 8);
+			loadedWeatherState.cloudNoiseScale = GUILayout.HorizontalSlider(cloudNoiseScale, 1, 8);
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Clear Sky");
+			float cloudClearSky = (cloudOverride) ? loadedWeatherState.cloudClearSky : WeatherSource.CloudClearSkyBlend;
 			GUILayout.Label(cloudClearSky.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudClearSky = GUILayout.HorizontalSlider(cloudClearSky, 0, 10);
+			loadedWeatherState.cloudClearSky = GUILayout.HorizontalSlider(cloudClearSky, 0, 10);
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Brightness");
+			float cloudBrightness = (cloudOverride) ? loadedWeatherState.cloudBrightness : WeatherSource.CloudBrightnessBlend;
 			GUILayout.Label(cloudBrightness.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudBrightness = GUILayout.HorizontalSlider(cloudBrightness, 0, 1);
+			loadedWeatherState.cloudBrightness = GUILayout.HorizontalSlider(cloudBrightness, 0, 1);
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Speed");
+			float cloudSpeed = (cloudOverride) ? loadedWeatherState.cloudSpeed : WeatherSource.CloudSpeedBlend;
 			GUILayout.Label(cloudSpeed.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudSpeed = GUILayout.HorizontalSlider(cloudSpeed, 0.01f, 0.5f);
+			loadedWeatherState.cloudSpeed = GUILayout.HorizontalSlider(cloudSpeed, 0.001f, 0.2f);
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Change");
+			float cloudChange = (cloudOverride) ? loadedWeatherState.cloudChange : WeatherSource.CloudChangeBlend;
 			GUILayout.Label(cloudChange.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudChange = GUILayout.HorizontalSlider(cloudChange, 0.1f, 0.5f);
+			loadedWeatherState.cloudChange = GUILayout.HorizontalSlider(cloudChange, 0.1f, 0.5f);
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Gradient");
+			float cloudGradient = (cloudOverride) ? loadedWeatherState.cloudGradient : WeatherSource.CloudGradientBlend;
 			GUILayout.Label(cloudGradient.ToString("n4"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			cloudGradient = GUILayout.HorizontalSlider(cloudGradient, 0, 0.5f);
+			loadedWeatherState.cloudGradient = GUILayout.HorizontalSlider(cloudGradient, 0, 0.5f);
 
 			GUI.enabled = true;
 
 			GUILayout.EndVertical(); // cloud override box end
 
-			GUILayout.Space(10);
 			// rain override box
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -395,9 +453,10 @@ namespace ProceduralSkyMod
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Rain Strength");
-			GUILayout.Label(WeatherSource.RainStrength.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			float rainStrength = (rainOverride) ? loadedWeatherState.rainParticleStrength : WeatherSource.RainStrengthBlend;
+			GUILayout.Label(rainStrength.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
-			WeatherSource.RainStrength = GUILayout.HorizontalSlider(WeatherSource.RainStrength, 0, 1f);
+			loadedWeatherState.rainParticleStrength = GUILayout.HorizontalSlider(rainStrength, 0, 1f);
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("System 0 (Rain Drop)");
 			GUILayout.Label(((int)RainController.RainParticleSystems[0].emission.rateOverTime.constant).ToString(), GUILayout.Width(50), GUILayout.ExpandWidth(false));
@@ -418,6 +477,74 @@ namespace ProceduralSkyMod
 			GUI.enabled = true;
 
 			GUILayout.EndVertical(); // rain override box end
+			
+			// xml weather state handler
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			GUILayout.Label("XML Weather States");
+			GUILayout.BeginHorizontal();
+			GUIContent btn = new GUIContent("New", "Create new file from current values");
+			if (GUILayout.Button(btn))
+			{
+				creatingNewWeatherStateFile = true;
+				newWeatherFileName = "New File";
+				loadedWeatherState = new WeatherState(newWeatherFileName, "State Name", loadedWeatherState);
+			}
+			btn = new GUIContent("Save", "Save current values to loaded file");
+			if (GUILayout.Button(btn))
+			{
+				if (!creatingNewWeatherStateFile)
+				{
+					if (loadedWeatherState.fileName == "FALLBACK") return;
+					WeatherState.CreateNewXML(loadedWeatherState);
+				}
+				else
+				{
+					if (!newFileNameError)
+					{
+						loadedWeatherState = new WeatherState(newWeatherFileName, newWeatherFileName, loadedWeatherState);
+						WeatherState.CreateNewXML(loadedWeatherState);
+						creatingNewWeatherStateFile = false;
+					}
+				}
+			}
+			btn = new GUIContent("Load", "Load existing file");
+			if (GUILayout.Button(btn))
+			{
+				showFileSelection = true;
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Filename");
+			if (!creatingNewWeatherStateFile)
+			{
+				GUILayout.Label(loadedWeatherState.fileName ?? "None Loaded", GUILayout.Width(120));
+			}
+			else
+			{
+				bool fileExists = File.Exists(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + newWeatherFileName);
+				newFileNameError = false;
+				if (fileExists || newWeatherFileName.IndexOfAny(forbiddenChar) != -1 || string.IsNullOrEmpty(newWeatherFileName))
+				{
+					newFileNameError = true;
+					GUI.color = Color.red;
+				}
+				newWeatherFileName = GUILayout.TextField(newWeatherFileName, GUILayout.Width(120));
+				GUI.color = defaultGUIColor;
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("State Name");
+			if (loadedWeatherState == null) GUI.enabled = false;
+			loadedWeatherState.name = GUILayout.TextField(loadedWeatherState.name, GUILayout.Width(120));
+			GUI.enabled = true;
+			GUILayout.EndHorizontal();
+
+			if (showFileSelection) DevGUIFileSelection.Show(WeatherSource.XMLWeatherStatePath, LoadWeatherStateFromXML);
+
+			GUILayout.EndVertical();// xml weather state handler end
 
 
 			GUILayout.EndVertical(); // row 0 end
@@ -480,6 +607,49 @@ namespace ProceduralSkyMod
 			GUILayout.EndVertical(); // row 1 end
 
 			GUILayout.EndHorizontal();
+		}
+	}
+
+	public static class DevGUIFileSelection
+	{
+		private static string[] files;
+		private static string[] filenames;
+		private static bool active = false;
+		private static int selected = 0;
+		private static Vector2 scrollPos;
+
+		public static void Show (string path, Action<string> callback)
+		{
+			if (!active)
+			{
+				files = Directory.GetFiles(path);
+				filenames = new string[files.Length];
+				for (int i = 0; i < files.Length; i++)
+					filenames[i] = Path.GetFileName(files[i]);
+				active = true;
+			}
+
+			Rect r = new Rect(Screen.width / 2 - 250, Screen.height / 2 - 250, 500, 500);
+			GUILayout.BeginArea(r, GUI.skin.box);
+
+			scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Height(470));
+			selected = GUILayout.SelectionGrid(selected, filenames, 2);
+			GUILayout.EndScrollView();
+
+			GUILayout.BeginHorizontal();
+			if (GUILayout.Button("LOAD"))
+			{
+				callback.Invoke(files[selected]);
+				active = false;
+			}
+			if (GUILayout.Button("CANCEL"))
+			{
+				callback.Invoke(string.Empty);
+				active = false;
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.EndArea();
 		}
 	}
 #endif

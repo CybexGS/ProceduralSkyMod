@@ -1,12 +1,31 @@
 ﻿using System.Collections;
 using UnityEngine;
+using System.IO;
+#if DEBUG
+using System;
+using System.Xml;
+#endif
 
 namespace ProceduralSkyMod
 {
 	public class WeatherState
 	{
-		public WeatherState (string name, float cloudClearSky, float cloudNoiseScale, float cloudChange, float cloudSpeed, float cloudBrightness, float cloudGradient, float rainParticleStrength)
+		public WeatherState ()
 		{
+			this.fileName = "FOO";
+			this.name = "BAR";
+			this.cloudClearSky = 0;
+			this.cloudNoiseScale = 0;
+			this.cloudChange = 0;
+			this.cloudSpeed = 0;
+			this.cloudBrightness = 0;
+			this.cloudGradient = 0;
+			this.rainParticleStrength = 0;
+		}
+
+		public WeatherState (string fileName, string name, float cloudClearSky, float cloudNoiseScale, float cloudChange, float cloudSpeed, float cloudBrightness, float cloudGradient, float rainParticleStrength)
+		{
+			this.fileName = fileName;
 			this.name = name;
 			this.cloudClearSky = cloudClearSky;
 			this.cloudNoiseScale = cloudNoiseScale;
@@ -17,6 +36,20 @@ namespace ProceduralSkyMod
 			this.rainParticleStrength = rainParticleStrength;
 		}
 
+		public WeatherState (string fileName, string name, WeatherState copyState)
+		{
+			this.fileName = fileName;
+			this.name = name;
+			this.cloudClearSky = copyState.cloudClearSky;
+			this.cloudNoiseScale = copyState.cloudNoiseScale;
+			this.cloudChange = copyState.cloudChange;
+			this.cloudSpeed = copyState.cloudSpeed;
+			this.cloudBrightness = copyState.cloudBrightness;
+			this.cloudGradient = copyState.cloudGradient;
+			this.rainParticleStrength = copyState.rainParticleStrength;
+		}
+
+		public string fileName;
 		public string name;
 
 		public float cloudClearSky;
@@ -27,16 +60,109 @@ namespace ProceduralSkyMod
 		public float cloudGradient;
 
 		public float rainParticleStrength;
+
+		public static WeatherState LoadFromXML (string filePath)
+		{
+			WeatherState state = new WeatherState();
+			XmlDocument doc = new XmlDocument();
+			doc.Load(filePath);
+			foreach (XmlNode nodes0 in doc.DocumentElement)
+			{
+				foreach (XmlNode nodes1 in nodes0.ChildNodes)
+				{
+					switch (nodes0.Name)
+					{
+						case "Names":
+							if (nodes1.Name == "fileName") state.fileName =	nodes1.InnerText;
+							if (nodes1.Name == "name") state.name = nodes1.InnerText;
+							break;
+						case "Clouds":
+							if (nodes1.Name == "cloudClearSky") state.cloudClearSky = float.Parse(nodes1.InnerText);
+							if (nodes1.Name == "cloudNoiseScale") state.cloudNoiseScale = float.Parse(nodes1.InnerText);
+							if (nodes1.Name == "cloudChange") state.cloudChange = float.Parse(nodes1.InnerText);
+							if (nodes1.Name == "cloudSpeed") state.cloudSpeed =	float.Parse(nodes1.InnerText);
+							if (nodes1.Name == "cloudBrightness") state.cloudBrightness = float.Parse(nodes1.InnerText);
+							if (nodes1.Name == "cloudGradient") state.cloudGradient = float.Parse(nodes1.InnerText);
+							break;
+						case "Rain":
+							if (nodes1.Name == "rainParticleStrength") state.rainParticleStrength = float.Parse(nodes1.InnerText);
+							break;
+						default:
+							Debug.LogWarning("FOO");
+							break;
+					}
+				}
+			}
+			return state;
+		}
+
+#if DEBUG
+		public static void CreateNewXML (WeatherState state)
+		{
+			XmlDocument doc = new XmlDocument();
+			XmlNode rootNode = doc.CreateElement("WeatherState");
+			doc.AppendChild(rootNode);
+
+			// name data
+			XmlNode namesNode = doc.CreateElement("Names");
+			rootNode.AppendChild(namesNode);
+
+			XmlNode filenameNode = doc.CreateElement("fileName");
+			filenameNode.InnerText = state.fileName;
+			namesNode.AppendChild(filenameNode);
+
+			XmlNode nameNode = doc.CreateElement("name");
+			nameNode.InnerText = state.name;
+			namesNode.AppendChild(nameNode);
+
+			// cloud data
+			XmlNode cloudsNode = doc.CreateElement("Clouds");
+			rootNode.AppendChild(cloudsNode);
+
+			XmlNode cloudClearSky = doc.CreateElement("cloudClearSky");
+			cloudClearSky.InnerText = state.cloudClearSky.ToString();
+			cloudsNode.AppendChild(cloudClearSky);
+
+			XmlNode cloudNoiseScale = doc.CreateElement("cloudNoiseScale");
+			cloudNoiseScale.InnerText = state.cloudNoiseScale.ToString();
+			cloudsNode.AppendChild(cloudNoiseScale);
+
+			XmlNode cloudChange = doc.CreateElement("cloudChange");
+			cloudChange.InnerText = state.cloudChange.ToString();
+			cloudsNode.AppendChild(cloudChange);
+
+			XmlNode cloudSpeed = doc.CreateElement("cloudSpeed");
+			cloudSpeed.InnerText = state.cloudSpeed.ToString();
+			cloudsNode.AppendChild(cloudSpeed);
+
+			XmlNode cloudBrightness = doc.CreateElement("cloudBrightness");
+			cloudBrightness.InnerText = state.cloudBrightness.ToString();
+			cloudsNode.AppendChild(cloudBrightness);
+
+			XmlNode cloudGradient = doc.CreateElement("cloudGradient");
+			cloudGradient.InnerText = state.cloudGradient.ToString();
+			cloudsNode.AppendChild(cloudGradient);
+
+			// rain data
+			XmlNode rainNode = doc.CreateElement("Rain");
+			rootNode.AppendChild(rainNode);
+
+			XmlNode rainParticleStrength = doc.CreateElement("rainParticleStrength");
+			rainParticleStrength.InnerText = state.rainParticleStrength.ToString();
+			rainNode.AppendChild(rainParticleStrength);
+
+			doc.Save(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + state.fileName);
+		}
+#endif
 	}
 
 	public delegate void CloudRenderDelegate ();
 
 	public class WeatherSource
 	{
-		private static float cloudTarget = 2, cloudCurrent = 1;
 		private static RenderTexture cloudRendTex;
 
-		public static float SkyClarity { get { cloudCurrent = Mathf.Lerp(cloudCurrent, cloudTarget, Time.deltaTime * 0.1f); return cloudCurrent; } }
+		public static string XMLWeatherStatePath { get => Main.Path + "ManagedData"; }
 
 		public static Camera CloudRenderTexCam { get; set; }
 		public static RenderTexture CloudRenderTex
@@ -52,8 +178,26 @@ namespace ProceduralSkyMod
 		public static Texture2D CloudRenderImage1 { get; private set; }
 		public static Texture2D CloudRenderImage2 { get; private set; }
 
-		public static WeatherState WeatherState { get; set; }
-		public static float RainStrength { get; set; } = 1f;
+		public static WeatherState CurrentWeatherState { get; set; }
+		public static WeatherState TargettWeatherState { get; set; }
+		public static float WeatherStateBlending { get; set; }
+
+		public static float CloudClearSkyBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudClearSky : Mathf.Lerp(CurrentWeatherState.cloudClearSky, TargettWeatherState.cloudClearSky, WeatherStateBlending); }
+		public static float CloudNoiseScaleBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudNoiseScale : Mathf.Lerp(CurrentWeatherState.cloudNoiseScale, TargettWeatherState.cloudNoiseScale, WeatherStateBlending); }
+		public static float CloudChangeBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudChange : Mathf.Lerp(CurrentWeatherState.cloudChange, TargettWeatherState.cloudChange, WeatherStateBlending); }
+		public static float CloudSpeedBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudSpeed : Mathf.Lerp(CurrentWeatherState.cloudSpeed, TargettWeatherState.cloudSpeed, WeatherStateBlending); }
+		public static float CloudBrightnessBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudBrightness : Mathf.Lerp(CurrentWeatherState.cloudBrightness, TargettWeatherState.cloudBrightness, WeatherStateBlending); }
+		public static float CloudGradientBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudGradient : Mathf.Lerp(CurrentWeatherState.cloudGradient, TargettWeatherState.cloudGradient, WeatherStateBlending); }
+
+		public static float RainStrengthBlend
+		{ get => (TargettWeatherState == null) ? CurrentWeatherState.rainParticleStrength : Mathf.Lerp(CurrentWeatherState.rainParticleStrength, TargettWeatherState.rainParticleStrength, WeatherStateBlending); }
+
 
 		public static event CloudRenderDelegate CloudRenderEvent;
 		public static void OnCloudRendered () { CloudRenderEvent?.Invoke(); }
@@ -63,11 +207,6 @@ namespace ProceduralSkyMod
 			while (true)
 			{
 				yield return new WaitForSeconds(60);
-				// .5 to 5 to test it
-				cloudTarget = Mathf.Clamp(Random.value * 5, .5f, 5f);
-#if DEBUG
-				Debug.Log(string.Format("New Cloud Target of {0}, current {1}", cloudTarget, cloudCurrent));
-#endif
 			}
 		}
 

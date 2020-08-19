@@ -92,10 +92,12 @@ namespace ProceduralSkyMod
 
 		public static void SetRainColor (Color color)
 		{
-			color.a = 0.5f;
 
+			color.a = 0.3f;
 			Material m = RainParticleSystems[0].GetComponent<ParticleSystemRenderer>().sharedMaterial;
 			m.SetColor("_Color", color);
+
+			color.a = 0.5f;
 			m = RainParticleSystems[1].GetComponent<ParticleSystemRenderer>().sharedMaterial;
 			m.SetColor("_Color", color);
 			m = RainParticleSystems[2].GetComponent<ParticleSystemRenderer>().sharedMaterial;

@@ -269,6 +269,11 @@ namespace ProceduralSkyMod
 			DV.AppUtil.GamePaused += SkySaveManager.Save;
 
 #if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Reflection Probe Updater...");
+#endif
+			ReflectionProbeUpdater.probe = FindObjectOfType<DynamicReflectionProbe>().GetComponent<ReflectionProbe>();
+
+#if DEBUG
 			psMaster.AddComponent<DevGUI>();
 			Debug.Log(">>> >>> >>> Cybex_ProceduralSkyMod : Initializer Finished Setup...");
 #endif
