@@ -1,3 +1,3 @@
 ﻿# ProceduralSkyMod
 
-Resources folder goes into mod installation folder
+Resources and ManagedData folders goe into mod installation folder
