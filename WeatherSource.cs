@@ -247,10 +247,10 @@ namespace ProceduralSkyMod
 			int frameRate = 30;
 			while (true)
 			{
-				//for (int i = 0; i < Mathf.Max(Main.settings.DayLengthSecondsRT / 4, 600); i++) // break out of loop 4 times a day but wait a minimum of 10 minutes
-				for (int i = 0; i < 60 * frameRate; i++) // DEBUG
+				//for (int i = 0; i < Mathf.Max(Main.settings.DayLengthSecondsRT / 4, 600) * frameRate; i++) // break out of loop 4 times a day but wait a minimum of 10 minutes
+				for (int i = 0; i < 60 * frameRate;) // DEBUG
 				{
-					if (NextWeatherState != null)
+					if (NextWeatherState != null && !DV.AppUtil.IsPaused)
 					{
 						//WeatherStateBlending += 0.0033334f / frameRate; // it will take just over 5 minutes to change state copletely to target
 						WeatherStateBlending += 0.0333334f / frameRate; // DEBUG
@@ -261,7 +261,13 @@ namespace ProceduralSkyMod
 							WeatherStateBlending = 0;
 						}
 					}
-					yield return new WaitForSeconds(1 / frameRate);
+
+					if (DV.AppUtil.IsPaused) yield return null;
+					else
+					{
+						i++;
+						yield return new WaitForSeconds(1 / frameRate);
+					}
 				}
 
 				float rnd = UnityEngine.Random.value;
@@ -271,7 +277,12 @@ namespace ProceduralSkyMod
 				if (WeatherChangeProbability > rnd)
 				{
 					NextWeatherState = WeatherState.LoadFromXML(AvailableWeatherStateFilesXML[(int)(UnityEngine.Random.value * AvailableWeatherStateFilesXML.Length)]);
-					WeatherChangeProbability = 0.1f;
+					if (NextWeatherState == CurrentWeatherState)
+					{
+						NextWeatherState = null;
+						WeatherChangeProbability += 0.1f;
+					}
+					else WeatherChangeProbability = 0.1f;
 				}
 				else WeatherChangeProbability += 0.1f;
 			}

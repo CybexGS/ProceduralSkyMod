@@ -52,7 +52,7 @@ namespace ProceduralSkyMod
 			}
 		}
 
-		public static SkySaveData Load ()
+		public static void Load ()
 		{
 			try
 			{
@@ -64,22 +64,20 @@ namespace ProceduralSkyMod
 					State = new SkySaveData(Main.ModVersion);
 
 					File.WriteAllText(path, JsonUtility.ToJson(State, true));
-					return State;
 				}
 				else
 				{
-					SkySaveData data = JsonUtility.FromJson<SkySaveData>(File.ReadAllText(path));
-					Debug.Log($">>> >>> >>> LOAD Version: [{data.version}]");
-					if (string.IsNullOrEmpty(data.version) || data.version != JsonUtility.FromJson<UnityModManagerNet.UnityModManager.ModInfo>(File.ReadAllText(Path.Combine(Main.ModPath, "Info.json"))).Version)
+					State = JsonUtility.FromJson<SkySaveData>(File.ReadAllText(path));
+					Debug.Log($">>> >>> >>> LOAD Version: [{State.version}]");
+					if (string.IsNullOrEmpty(State.version) || State.version != JsonUtility.FromJson<UnityModManagerNet.UnityModManager.ModInfo>(File.ReadAllText(Path.Combine(Main.ModPath, "Info.json"))).Version)
 					{
-						if (string.IsNullOrEmpty(data.version)) Debug.LogWarning(">>> >>> >>> No Version Available");
-						else if (data.version != Main.ModVersion) Debug.LogWarning(">>> >>> >>> No Version Compatibility");
+						if (string.IsNullOrEmpty(State.version)) Debug.LogWarning(">>> >>> >>> No Version Available");
+						else if (State.version != Main.ModVersion) Debug.LogWarning(">>> >>> >>> No Version Compatibility");
 
-						data = State = new SkySaveData(Main.ModVersion);
+						State = new SkySaveData(Main.ModVersion);
 						File.WriteAllText(path, JsonUtility.ToJson(State, true));
-						Debug.LogWarning($">>> >>> >>> Created New File with Version: [{data.version}]");
+						Debug.LogWarning($">>> >>> >>> Created New File with Version: [{State.version}]");
 					}
-					return data;
 				}
 			}
 			catch (Exception ex)

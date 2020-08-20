@@ -45,7 +45,8 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Loading Saved State...");
 #endif
-			SkySaveData saveData = SkySaveManager.Load();
+			SkySaveManager.Load();
+			ProceduralSkyTimeSource.LoadSavedTime();
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Skybox Material...");
@@ -237,10 +238,10 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Weather Source...");
 #endif
-			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + saveData.currentWeatherState);
-			if (!string.IsNullOrEmpty(saveData.nextWeatherState))
-				WeatherSource.NextWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + saveData.nextWeatherState);
-			WeatherSource.WeatherStateBlending = saveData.weatherStateBlending;
+			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + SkySaveManager.State.currentWeatherState);
+			if (!string.IsNullOrEmpty(SkySaveManager.State.nextWeatherState))
+				WeatherSource.NextWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + SkySaveManager.State.nextWeatherState);
+			WeatherSource.WeatherStateBlending = SkySaveManager.State.weatherStateBlending;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");
@@ -275,7 +276,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Sky Save...");
 #endif
 			DV.AppUtil.GamePaused += SkySaveManager.Save;
-
+			
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Reflection Probe Updater...");
 #endif

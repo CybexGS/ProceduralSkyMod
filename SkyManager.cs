@@ -290,18 +290,22 @@ namespace ProceduralSkyMod
 
 			GUILayout.Label("Date");
 			GUILayout.BeginHorizontal();
-			GUILayout.Label("Year:");
-			yearOverride = int.Parse(GUILayout.TextField(yearOverride.ToString(), GUILayout.Width(40)));
-			GUILayout.Label("Month:");
+			GUILayout.Label("Year");
+			int year = (dateTimeOverride) ? yearOverride : ProceduralSkyTimeSource.Instance.LocalTime.Year;
+			yearOverride = int.Parse(GUILayout.TextField(year.ToString(), GUILayout.Width(40)));
+			GUILayout.Label("Month");
+			int month = (dateTimeOverride) ? monthOverride : ProceduralSkyTimeSource.Instance.LocalTime.Month;
 			monthOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(monthOverride.ToString(), GUILayout.Width(20))), 1, 12);
-			GUILayout.Label("Day:");
-			dayOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(dayOverride.ToString(), GUILayout.Width(20))), 1, new DateTime(yearOverride, monthOverride % 12 + 1, 1).AddDays(-1).Day);
+			GUILayout.Label("Day");
+			int day = (dateTimeOverride) ? dayOverride : ProceduralSkyTimeSource.Instance.LocalTime.Day;
+			dayOverride = Mathf.Clamp(int.Parse(GUILayout.TextField(day.ToString(), GUILayout.Width(20))), 1, new DateTime(yearOverride, monthOverride % 12 + 1, 1).AddDays(-1).Day);
 			GUILayout.EndHorizontal();
 			GUILayout.Space(2);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Time");
-			GUILayout.Label(dayProgressOverride.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
+			float time = (dateTimeOverride) ? dayProgressOverride : ProceduralSkyTimeSource.Instance.LocalTime.Hour + ProceduralSkyTimeSource.Instance.LocalTime.Minute * 0.01f;
+			GUILayout.Label(time.ToString("n2"), GUILayout.Width(50), GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
 			dayProgressOverride = GUILayout.HorizontalSlider(dayProgressOverride, 0, 24);
 
