@@ -1,6 +1,8 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 #if DEBUG
 using System;
 using System.Xml;
@@ -36,10 +38,10 @@ namespace ProceduralSkyMod
 			this.rainParticleStrength = rainParticleStrength;
 		}
 
-		public WeatherState (string fileName, string name, WeatherState copyState)
+		public WeatherState (string fileName, WeatherState copyState)
 		{
 			this.fileName = fileName;
-			this.name = name;
+			this.name = copyState.name;
 			this.cloudClearSky = copyState.cloudClearSky;
 			this.cloudNoiseScale = copyState.cloudNoiseScale;
 			this.cloudChange = copyState.cloudChange;
@@ -63,37 +65,58 @@ namespace ProceduralSkyMod
 
 		public static WeatherState LoadFromXML (string filePath)
 		{
-			WeatherState state = new WeatherState();
-			XmlDocument doc = new XmlDocument();
-			doc.Load(filePath);
-			foreach (XmlNode nodes0 in doc.DocumentElement)
+			try
 			{
-				foreach (XmlNode nodes1 in nodes0.ChildNodes)
+				WeatherState state = new WeatherState();
+				XmlDocument doc = new XmlDocument();
+				doc.Load(filePath);
+				foreach (XmlNode nodes0 in doc.DocumentElement)
 				{
-					switch (nodes0.Name)
+					foreach (XmlNode nodes1 in nodes0.ChildNodes)
 					{
-						case "Names":
-							if (nodes1.Name == "fileName") state.fileName =	nodes1.InnerText;
-							if (nodes1.Name == "name") state.name = nodes1.InnerText;
-							break;
-						case "Clouds":
-							if (nodes1.Name == "cloudClearSky") state.cloudClearSky = float.Parse(nodes1.InnerText);
-							if (nodes1.Name == "cloudNoiseScale") state.cloudNoiseScale = float.Parse(nodes1.InnerText);
-							if (nodes1.Name == "cloudChange") state.cloudChange = float.Parse(nodes1.InnerText);
-							if (nodes1.Name == "cloudSpeed") state.cloudSpeed =	float.Parse(nodes1.InnerText);
-							if (nodes1.Name == "cloudBrightness") state.cloudBrightness = float.Parse(nodes1.InnerText);
-							if (nodes1.Name == "cloudGradient") state.cloudGradient = float.Parse(nodes1.InnerText);
-							break;
-						case "Rain":
-							if (nodes1.Name == "rainParticleStrength") state.rainParticleStrength = float.Parse(nodes1.InnerText);
-							break;
-						default:
-							Debug.LogWarning("FOO");
-							break;
+						switch (nodes0.Name)
+						{
+							case "Names":
+								if (nodes1.Name == "fileName") state.fileName = nodes1.InnerText;
+								if (nodes1.Name == "name") state.name = nodes1.InnerText;
+								break;
+							case "Clouds":
+								if (nodes1.Name == "cloudClearSky") state.cloudClearSky = float.Parse(nodes1.InnerText);
+								if (nodes1.Name == "cloudNoiseScale") state.cloudNoiseScale = float.Parse(nodes1.InnerText);
+								if (nodes1.Name == "cloudChange") state.cloudChange = float.Parse(nodes1.InnerText);
+								if (nodes1.Name == "cloudSpeed") state.cloudSpeed = float.Parse(nodes1.InnerText);
+								if (nodes1.Name == "cloudBrightness") state.cloudBrightness = float.Parse(nodes1.InnerText);
+								if (nodes1.Name == "cloudGradient") state.cloudGradient = float.Parse(nodes1.InnerText);
+								break;
+							case "Rain":
+								if (nodes1.Name == "rainParticleStrength") state.rainParticleStrength = float.Parse(nodes1.InnerText);
+								break;
+							default:
+								Debug.LogWarning("FOO");
+								break;
+						}
 					}
 				}
+				return state;
 			}
-			return state;
+			catch
+			{
+				Debug.LogWarning($"WeatherState.cs: Load From XML Error While Trying To Load\n{filePath}");
+				return GetFALLBACK();
+			}
+		}
+
+		private static WeatherState GetFALLBACK ()
+		{
+			if (File.Exists(WeatherSource.XMLWeatherStatePath + "PSWS_FALLBACK"))
+			{
+				Debug.Log(">>> >>> >>> Get FALLBACK From File");
+				return LoadFromXML(WeatherSource.XMLWeatherStatePath + "PSWS_FALLBACK");
+			}
+			WeatherState fallback = new WeatherState("PSWS_FALLBACK", "FALLBACK", 0, 1, 0.1f, 0.001f, 0, 0, 1);
+			CreateNewXML(fallback);
+			Debug.Log(">>> >>> >>> Created New FALLBACK File");
+			return fallback;
 		}
 
 #if DEBUG
@@ -151,7 +174,7 @@ namespace ProceduralSkyMod
 			rainParticleStrength.InnerText = state.rainParticleStrength.ToString();
 			rainNode.AppendChild(rainParticleStrength);
 
-			doc.Save(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + state.fileName);
+			doc.Save(WeatherSource.XMLWeatherStatePath + state.fileName);
 		}
 #endif
 	}
@@ -162,7 +185,7 @@ namespace ProceduralSkyMod
 	{
 		private static RenderTexture cloudRendTex;
 
-		public static string XMLWeatherStatePath { get => Main.Path + "ManagedData"; }
+		public static string XMLWeatherStatePath { get => Main.ModPath + "ManagedData" + Path.DirectorySeparatorChar; }
 
 		public static Camera CloudRenderTexCam { get; set; }
 		public static RenderTexture CloudRenderTex
@@ -178,35 +201,79 @@ namespace ProceduralSkyMod
 		public static Texture2D CloudRenderImage1 { get; private set; }
 		public static Texture2D CloudRenderImage2 { get; private set; }
 
+		public static string[] AvailableWeatherStateFilesXML { get; private set; }
 		public static WeatherState CurrentWeatherState { get; set; }
-		public static WeatherState TargettWeatherState { get; set; }
+		public static WeatherState NextWeatherState { get; set; }
 		public static float WeatherStateBlending { get; set; }
+		public static float WeatherChangeProbability { get; private set; }
+#if DEBUG
+		public static float LastRNDWeatherChange { get; set; }
+		public static float LastRNDFileSelect { get; set; }
+#endif
 
 		public static float CloudClearSkyBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudClearSky : Mathf.Lerp(CurrentWeatherState.cloudClearSky, TargettWeatherState.cloudClearSky, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudClearSky : Mathf.Lerp(CurrentWeatherState.cloudClearSky, NextWeatherState.cloudClearSky, WeatherStateBlending); }
 		public static float CloudNoiseScaleBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudNoiseScale : Mathf.Lerp(CurrentWeatherState.cloudNoiseScale, TargettWeatherState.cloudNoiseScale, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudNoiseScale : Mathf.Lerp(CurrentWeatherState.cloudNoiseScale, NextWeatherState.cloudNoiseScale, WeatherStateBlending); }
 		public static float CloudChangeBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudChange : Mathf.Lerp(CurrentWeatherState.cloudChange, TargettWeatherState.cloudChange, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudChange : Mathf.Lerp(CurrentWeatherState.cloudChange, NextWeatherState.cloudChange, WeatherStateBlending); }
 		public static float CloudSpeedBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudSpeed : Mathf.Lerp(CurrentWeatherState.cloudSpeed, TargettWeatherState.cloudSpeed, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudSpeed : Mathf.Lerp(CurrentWeatherState.cloudSpeed, NextWeatherState.cloudSpeed, WeatherStateBlending); }
 		public static float CloudBrightnessBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudBrightness : Mathf.Lerp(CurrentWeatherState.cloudBrightness, TargettWeatherState.cloudBrightness, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudBrightness : Mathf.Lerp(CurrentWeatherState.cloudBrightness, NextWeatherState.cloudBrightness, WeatherStateBlending); }
 		public static float CloudGradientBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.cloudGradient : Mathf.Lerp(CurrentWeatherState.cloudGradient, TargettWeatherState.cloudGradient, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.cloudGradient : Mathf.Lerp(CurrentWeatherState.cloudGradient, NextWeatherState.cloudGradient, WeatherStateBlending); }
 
 		public static float RainStrengthBlend
-		{ get => (TargettWeatherState == null) ? CurrentWeatherState.rainParticleStrength : Mathf.Lerp(CurrentWeatherState.rainParticleStrength, TargettWeatherState.rainParticleStrength, WeatherStateBlending); }
+		{ get => (NextWeatherState == null) ? CurrentWeatherState.rainParticleStrength : Mathf.Lerp(CurrentWeatherState.rainParticleStrength, NextWeatherState.rainParticleStrength, WeatherStateBlending); }
 
 
 		public static event CloudRenderDelegate CloudRenderEvent;
 		public static void OnCloudRendered () { CloudRenderEvent?.Invoke(); }
 
-		public static IEnumerator CloudChanger ()
+		public static IEnumerator WeatherStateChanger ()
 		{
+			AvailableWeatherStateFilesXML = SearchAvailableWeatherStateFilesXML();
+			if (CurrentWeatherState.fileName == "PSWS_FALLBACK" && AvailableWeatherStateFilesXML.Length > 0)
+				CurrentWeatherState = WeatherState.LoadFromXML(AvailableWeatherStateFilesXML[0]);
+			else
+			{
+				Debug.LogError("WeatherSource.cs: Weather State Changer Error");
+				yield break;
+			}
+
+			//WeatherChangeProbability = 0.1f;
+			WeatherChangeProbability = 0.7f; // DEBUG
+			int frameRate = 30;
 			while (true)
 			{
-				yield return new WaitForSeconds(60);
+				//for (int i = 0; i < Mathf.Max(Main.settings.DayLengthSecondsRT / 4, 600); i++) // break out of loop 4 times a day but wait a minimum of 10 minutes
+				for (int i = 0; i < 60 * frameRate; i++) // DEBUG
+				{
+					if (NextWeatherState != null)
+					{
+						//WeatherStateBlending += 0.0033334f / frameRate; // it will take just over 5 minutes to change state copletely to target
+						WeatherStateBlending += 0.0333334f / frameRate; // DEBUG
+						if (WeatherStateBlending > 1)
+						{
+							CurrentWeatherState = NextWeatherState;
+							NextWeatherState = null;
+							WeatherStateBlending = 0;
+						}
+					}
+					yield return new WaitForSeconds(1 / frameRate);
+				}
+
+				float rnd = UnityEngine.Random.value;
+#if DEBUG
+				LastRNDWeatherChange = rnd;
+#endif
+				if (WeatherChangeProbability > rnd)
+				{
+					NextWeatherState = WeatherState.LoadFromXML(AvailableWeatherStateFilesXML[(int)(UnityEngine.Random.value * AvailableWeatherStateFilesXML.Length)]);
+					WeatherChangeProbability = 0.1f;
+				}
+				else WeatherChangeProbability += 0.1f;
 			}
 		}
 
@@ -244,9 +311,37 @@ namespace ProceduralSkyMod
 			cloudRendTex.depth = 0;
 			cloudRendTex.useMipMap = false;
 			cloudRendTex.useDynamicScale = false;
-			cloudRendTex.wrapMode = TextureWrapMode.Clamp; // use mirror if used for cloud shadows
-			cloudRendTex.filterMode = FilterMode.Point; // use billinear if used for cloud shadows
+			cloudRendTex.wrapMode = TextureWrapMode.Clamp;
+			cloudRendTex.filterMode = FilterMode.Point;
 			cloudRendTex.anisoLevel = 0;
+		}
+
+		public static string[] SearchAvailableWeatherStateFilesXML ()
+		{
+#if DEBUG
+			Debug.Log(">>> >>> >>> Loading Weather State Files...");
+#endif
+			List<string> allFiles = Directory.GetFiles(WeatherSource.XMLWeatherStatePath).ToList();
+			XmlDocument doc;
+			for (int i = 0; i < allFiles.Count;)
+			{
+				if (Path.GetFileName(allFiles[i]).Contains("PSWS_FALLBACK")) allFiles.RemoveAt(i);
+				else
+				{
+					try
+					{
+						doc = new XmlDocument();
+						doc.Load(allFiles[i]);
+						if (doc.DocumentElement.Name == "WeatherState") i++;
+						else allFiles.RemoveAt(i);
+					}
+					catch { allFiles.RemoveAt(i); }
+				}
+			}
+#if DEBUG
+			Debug.Log($">>> >>> >>> Weather File Loading: {allFiles.Count} Weather Files found!");
+#endif
+			return allFiles.ToArray();
 		}
 	}
 }

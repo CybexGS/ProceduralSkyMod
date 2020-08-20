@@ -7,7 +7,16 @@ namespace ProceduralSkyMod
 	[Serializable]
 	public class SkySaveData
 	{
-		public DateTime internalDate = DateTime.Now;
+		public SkySaveData () { }
+		public SkySaveData (string modVersion) { version = modVersion; }
+
+		public string version = string.Empty;
+
+		public string internalDate = DateTime.Now.ToString();
+
+		public string currentWeatherState = "PSWS_FALLBACK"; // save filename
+		public string nextWeatherState = string.Empty; // save filename
+		public float weatherStateBlending = 0;
 	}
 
 	public static class SkySaveManager
@@ -21,10 +30,16 @@ namespace ProceduralSkyMod
 		{
 			try
 			{
-				string path = Path.Combine(Main.Path, "SkySave.json");
+				string path = Path.Combine(Main.ModPath, "SkySave.json");
 				if (!File.Exists(path)) File.Create(path).Close();
 
-				State.internalDate = ProceduralSkyTimeSource.Instance.LocalTime;
+				State.version = Main.ModVersion;
+
+				State.internalDate = ProceduralSkyTimeSource.Instance.LocalTime.ToString();
+
+				State.currentWeatherState = WeatherSource.CurrentWeatherState.fileName;
+				State.nextWeatherState = WeatherSource.NextWeatherState?.fileName ?? string.Empty;
+				State.weatherStateBlending = WeatherSource.WeatherStateBlending;
 
 				File.WriteAllText(path, JsonUtility.ToJson(State, true));
 
@@ -41,21 +56,30 @@ namespace ProceduralSkyMod
 		{
 			try
 			{
-				string path = Path.Combine(Main.Path, "SkySave.json");
+				string path = Path.Combine(Main.ModPath, "SkySave.json");
 				if (!File.Exists(path))
 				{
 					File.Create(path).Close();
 
-					SkyManager instance = GameObject.Find("ProceduralSkyMod").GetComponent<SkyManager>();
+					State = new SkySaveData(Main.ModVersion);
 
-					State = new SkySaveData();
-
-					File.WriteAllText(path, JsonUtility.ToJson(State));
+					File.WriteAllText(path, JsonUtility.ToJson(State, true));
 					return State;
 				}
 				else
 				{
-					return JsonUtility.FromJson<SkySaveData>(File.ReadAllText(path));
+					SkySaveData data = JsonUtility.FromJson<SkySaveData>(File.ReadAllText(path));
+					Debug.Log($">>> >>> >>> LOAD Version: [{data.version}]");
+					if (string.IsNullOrEmpty(data.version) || data.version != JsonUtility.FromJson<UnityModManagerNet.UnityModManager.ModInfo>(File.ReadAllText(Path.Combine(Main.ModPath, "Info.json"))).Version)
+					{
+						if (string.IsNullOrEmpty(data.version)) Debug.LogWarning(">>> >>> >>> No Version Available");
+						else if (data.version != Main.ModVersion) Debug.LogWarning(">>> >>> >>> No Version Compatibility");
+
+						data = State = new SkySaveData(Main.ModVersion);
+						File.WriteAllText(path, JsonUtility.ToJson(State, true));
+						Debug.LogWarning($">>> >>> >>> Created New File with Version: [{data.version}]");
+					}
+					return data;
 				}
 			}
 			catch (Exception ex)

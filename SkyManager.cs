@@ -39,11 +39,11 @@ namespace ProceduralSkyMod
 			CloudMaterial.SetFloat("_CloudSpeed", 0.03f);
 			StarMaterial.SetFloat("_Exposure", 2.0f);
 
-			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + "FALLBACK");
-			WeatherSource.TargettWeatherState = null;
+			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + "PSWS_FALLBACK");
+			WeatherSource.NextWeatherState = null;
 			WeatherSource.WeatherStateBlending = 0;
 
-			StartCoroutine(WeatherSource.CloudChanger());
+			StartCoroutine(WeatherSource.WeatherStateChanger());
 			StartCoroutine(WeatherSource.UpdateCloudRenderTex());
 			StartCoroutine(ReflectionProbeUpdater.UpdateProbe());
 		}
@@ -132,10 +132,6 @@ namespace ProceduralSkyMod
 			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, SunLight.intensity));
 			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(SunLight.intensity * 10)));
 
-			//CloudMaterial.SetFloat("_CloudBright", Mathf.Lerp(.002f, .9f, SunLight.intensity));
-			//CloudMaterial.SetFloat("_CloudGradient", Mathf.Lerp(.45f, .2f, SunLight.intensity));
-			//CloudMaterial.SetFloat("_ClearSky", WeatherSource.CloudClearSkyBlend);
-
 			CloudMaterial.SetFloat("_NScale", WeatherSource.CloudNoiseScaleBlend);
 			CloudMaterial.SetFloat("_ClearSky", WeatherSource.CloudClearSkyBlend);
 			float facC = Mathf.Lerp(.002f, 1f, SunLight.intensity);
@@ -174,7 +170,7 @@ namespace ProceduralSkyMod
 
 		void OnDisable ()
 		{
-			StopCoroutine(WeatherSource.CloudChanger());
+			StopCoroutine(WeatherSource.WeatherStateChanger());
 			StopCoroutine(WeatherSource.UpdateCloudRenderTex());
 			StopCoroutine(ReflectionProbeUpdater.UpdateProbe());
 		}
@@ -221,7 +217,7 @@ namespace ProceduralSkyMod
 
 			try
 			{
-				LoadWeatherStateFromXML(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + "FALLBACK");
+				LoadWeatherStateFromXML(WeatherSource.XMLWeatherStatePath + "PSWS_FALLBACK");
 			}
 			catch (Exception ex)
 			{
@@ -278,37 +274,12 @@ namespace ProceduralSkyMod
 			Event guiEvent = Event.current;
 			defaultGUIColor = GUI.color;
 
-			GUILayout.BeginHorizontal();
+			GUILayout.BeginHorizontal(); // total start
 			GUILayout.Space(3);
 
 			GUILayout.BeginVertical(); // row 0 begin
 
-			// cloud render box
-			GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(200));
-
-			Texture2D tex;
-			Rect r;
-			GUILayout.Label("PS 0: " + RainController.RainParticleSystems[0].gameObject.name);
-			tex = RainController.RainParticleSystems[0].shape.texture;
-			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
-			GUI.DrawTexture(r, tex);
-
-			GUILayout.Label("PS 1: " + RainController.RainParticleSystems[1].gameObject.name);
-			tex = RainController.RainParticleSystems[1].shape.texture;
-			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
-			GUI.DrawTexture(r, tex);
-
-			GUILayout.Label("PS 2: " + RainController.RainParticleSystems[2].gameObject.name);
-			tex = RainController.RainParticleSystems[2].shape.texture;
-			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
-			GUI.DrawTexture(r, tex);
-
-			//GUILayout.Label("RenderTex");
-			//if (WeatherSource.CloudRenderImage2 == null) return;
-			//r = GUILayoutUtility.GetRect(256, 256);
-			//GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
-
-			GUILayout.EndVertical(); // cloud render box end
+			
 
 #if !CYBEX_TIME
 			// date & time override box (fauxnik time algo compatible)
@@ -391,7 +362,21 @@ namespace ProceduralSkyMod
 			// cloud override box
 			GUILayout.BeginVertical(GUI.skin.box);
 
-			cloudOverride = GUILayout.Toggle(cloudOverride, "Cloud Override");
+			bool newCloudOverride = GUILayout.Toggle(cloudOverride, "Cloud Override");
+			if (newCloudOverride != cloudOverride)
+			{
+				if(newCloudOverride == true)
+				{
+					loadedWeatherState.cloudBrightness = WeatherSource.CloudBrightnessBlend;
+					loadedWeatherState.cloudChange = WeatherSource.CloudChangeBlend;
+					loadedWeatherState.cloudClearSky = WeatherSource.CloudClearSkyBlend;
+					loadedWeatherState.cloudGradient = WeatherSource.CloudGradientBlend;
+					loadedWeatherState.cloudNoiseScale = WeatherSource.CloudNoiseScaleBlend;
+					loadedWeatherState.cloudSpeed = WeatherSource.CloudSpeedBlend;
+				}
+
+				cloudOverride = newCloudOverride;
+			}
 			if (!cloudOverride) GUI.enabled = false;
 
 			GUILayout.BeginHorizontal();
@@ -448,7 +433,16 @@ namespace ProceduralSkyMod
 			// rain override box
 			GUILayout.BeginVertical(GUI.skin.box);
 
-			rainOverride = GUILayout.Toggle(rainOverride, "Rain Override");
+			bool newRainOverride = GUILayout.Toggle(rainOverride, "Rain Override");
+			if (newRainOverride != rainOverride)
+			{
+				if (newRainOverride == true)
+				{
+					loadedWeatherState.rainParticleStrength = WeatherSource.RainStrengthBlend;
+				}
+
+				rainOverride = newRainOverride;
+			}
 			if (!rainOverride) GUI.enabled = false;
 
 			GUILayout.BeginHorizontal();
@@ -477,7 +471,39 @@ namespace ProceduralSkyMod
 			GUI.enabled = true;
 
 			GUILayout.EndVertical(); // rain override box end
-			
+
+			// weather state box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			GUILayout.Label("Weather State");
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Change Probability");
+			GUILayout.Label(WeatherSource.WeatherChangeProbability.ToString("n2"), GUILayout.Width(80), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Last RND Change");
+			GUILayout.Label(WeatherSource.LastRNDWeatherChange.ToString("n2"), GUILayout.Width(80), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Current State");
+			GUILayout.Label(WeatherSource.CurrentWeatherState?.name ?? "NULL", GUILayout.Width(80), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Next State");
+			GUILayout.Label(WeatherSource.NextWeatherState?.name ?? "NULL", GUILayout.Width(80), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Blend");
+			GUILayout.Label(WeatherSource.WeatherStateBlending.ToString("n6"), GUILayout.Width(80), GUILayout.ExpandWidth(false));
+			GUILayout.EndHorizontal();
+
+			GUILayout.EndVertical(); // weather state box end
+
 			// xml weather state handler
 			GUILayout.BeginVertical(GUI.skin.box);
 
@@ -488,7 +514,8 @@ namespace ProceduralSkyMod
 			{
 				creatingNewWeatherStateFile = true;
 				newWeatherFileName = "New File";
-				loadedWeatherState = new WeatherState(newWeatherFileName, "State Name", loadedWeatherState);
+				loadedWeatherState = new WeatherState(newWeatherFileName, loadedWeatherState);
+				loadedWeatherState.name = "State Name";
 			}
 			btn = new GUIContent("Save", "Save current values to loaded file");
 			if (GUILayout.Button(btn))
@@ -502,7 +529,7 @@ namespace ProceduralSkyMod
 				{
 					if (!newFileNameError)
 					{
-						loadedWeatherState = new WeatherState(newWeatherFileName, newWeatherFileName, loadedWeatherState);
+						loadedWeatherState = new WeatherState(newWeatherFileName, loadedWeatherState);
 						WeatherState.CreateNewXML(loadedWeatherState);
 						creatingNewWeatherStateFile = false;
 					}
@@ -523,7 +550,7 @@ namespace ProceduralSkyMod
 			}
 			else
 			{
-				bool fileExists = File.Exists(WeatherSource.XMLWeatherStatePath + Path.DirectorySeparatorChar + newWeatherFileName);
+				bool fileExists = File.Exists(WeatherSource.XMLWeatherStatePath + newWeatherFileName);
 				newFileNameError = false;
 				if (fileExists || newWeatherFileName.IndexOfAny(forbiddenChar) != -1 || string.IsNullOrEmpty(newWeatherFileName))
 				{
@@ -606,7 +633,49 @@ namespace ProceduralSkyMod
 
 			GUILayout.EndVertical(); // row 1 end
 
+
+			// row spacer
+			GUILayout.BeginVertical();
+			GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true), GUILayout.MaxWidth(1920));
+			GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
+			GUILayout.EndVertical(); // row spacer end
+
+
+			// row last
+			GUILayout.BeginVertical();
+
+			// cloud render box
+			GUILayout.BeginVertical(GUI.skin.box);
+
+			Texture2D tex;
+			Rect r;
+			GUILayout.Label("PS 0: " + RainController.RainParticleSystems[0].gameObject.name);
+			tex = RainController.RainParticleSystems[0].shape.texture;
+			r = GUILayoutUtility.GetRect(200, 200, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			GUILayout.Label("PS 1: " + RainController.RainParticleSystems[1].gameObject.name);
+			tex = RainController.RainParticleSystems[1].shape.texture;
+			r = GUILayoutUtility.GetRect(200, 200, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			GUILayout.Label("PS 2: " + RainController.RainParticleSystems[2].gameObject.name);
+			tex = RainController.RainParticleSystems[2].shape.texture;
+			r = GUILayoutUtility.GetRect(200, 200, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
+
+			//GUILayout.Label("RenderTex");
+			//if (WeatherSource.CloudRenderImage2 == null) return;
+			//r = GUILayoutUtility.GetRect(256, 256);
+			//GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
+
+			GUILayout.EndVertical(); // cloud render box end
+
+			GUILayout.EndVertical(); // row last end
+
+			GUILayout.Space(3);
+			GUILayout.EndHorizontal(); // total end
 		}
 	}
 

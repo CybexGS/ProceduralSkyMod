@@ -31,7 +31,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Loading Asset Bundle...");
 #endif
 			// Load the asset bundle
-			AssetBundle assets = AssetBundle.LoadFromFile(Main.Path + "Resources/proceduralskymod");
+			AssetBundle assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/proceduralskymod");
 
 			_skyMaterial = assets.LoadAsset<Material>("Assets/Materials/Sky.mat");
 			_rainAudioClip = assets.LoadAsset<AudioClip>("Assets/Audio/rain-03.wav");
@@ -233,6 +233,14 @@ namespace ProceduralSkyMod
 
 			RainController.SetRainParticleSystemArray(psRainParticleSys.GetComponentsInChildren<ParticleSystem>(true));
 			WeatherSource.CloudRenderEvent += RainController.SetShapeTextures;
+
+#if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Weather Source...");
+#endif
+			WeatherSource.CurrentWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + saveData.currentWeatherState);
+			if (!string.IsNullOrEmpty(saveData.nextWeatherState))
+				WeatherSource.NextWeatherState = WeatherState.LoadFromXML(WeatherSource.XMLWeatherStatePath + saveData.nextWeatherState);
+			WeatherSource.WeatherStateBlending = saveData.weatherStateBlending;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Sky Manager Properties...");

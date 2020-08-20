@@ -18,7 +18,7 @@ namespace ProceduralSkyMod
 			instance = this;
 
 			// load saved date from sky save manager
-			LocalTime = SkySaveManager.State.internalDate;
+			LocalTime = DateTime.Parse(SkySaveManager.State.internalDate);
 		}
 
 		public string Id => "proceduralsky";
