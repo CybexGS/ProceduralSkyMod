@@ -143,13 +143,17 @@ namespace ProceduralSkyMod
 			Camera sunShadowRendTexCam = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
 			sunShadowRendTexCam.transform.SetParent(dirLight.transform);
 			sunShadowRendTexCam.transform.ResetLocal();
-			//sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
-			sunShadowRendTexCam.orthographic = true;
-			sunShadowRendTexCam.orthographicSize = 10;
+			sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
 			sunShadowRendTexCam.clearFlags = CameraClearFlags.Color;
 			sunShadowRendTexCam.backgroundColor = Color.clear;
 			sunShadowRendTexCam.cullingMask = 0;
 			sunShadowRendTexCam.cullingMask |= 1 << 31;
+
+			////sunShadowRendTexCam.orthographic = true;
+			////sunShadowRendTexCam.orthographicSize = 5;
+			////cloudRendTexCam.nearClipPlane = 0;
+			////cloudRendTexCam.farClipPlane = 30;
+
 			sunShadowRendTexCam.renderingPath = RenderingPath.Forward;
 			sunShadowRendTexCam.targetTexture = WeatherSource.SunShadowRenderTex;
 			sunShadowRendTexCam.useOcclusionCulling = false;

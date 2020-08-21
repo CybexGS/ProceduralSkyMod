@@ -184,6 +184,7 @@ namespace ProceduralSkyMod
 	public class WeatherSource
 	{
 		private static RenderTexture cloudRendTex;
+		private static RenderTexture sunShadowRendTex;
 
 		public static string XMLWeatherStatePath { get => Main.ModPath + "ManagedData" + Path.DirectorySeparatorChar; }
 
@@ -197,9 +198,19 @@ namespace ProceduralSkyMod
 			}
 			set => cloudRendTex = value;
 		}
+		public static Camera SunShadowRenderTexCam { get; set; }
+		public static RenderTexture SunShadowRenderTex
+		{
+			get
+			{
+				if (sunShadowRendTex == null) SetupShadowRenderTex();
+				return sunShadowRendTex;
+			}
+		}
 		public static Texture2D CloudRenderImage0 { get; private set; }
 		public static Texture2D CloudRenderImage1 { get; private set; }
 		public static Texture2D CloudRenderImage2 { get; private set; }
+		public static Texture2D SunShadowRenderImage { get; private set; }
 
 		public static string[] AvailableWeatherStateFilesXML { get; private set; }
 		public static WeatherState CurrentWeatherState { get; set; }
@@ -309,8 +320,21 @@ namespace ProceduralSkyMod
 
 				OnCloudRendered();
 
-				RenderTexture.active = current;
-				yield return new WaitForSeconds(0.5f);
+				for (int i = 0; i < 16; i++)
+				{
+					RenderTexture.active = SunShadowRenderTex;
+					SunShadowRenderTexCam.Render();
+
+					SunShadowRenderImage = new Texture2D(SunShadowRenderTex.width, SunShadowRenderTex.height);
+					SunShadowRenderImage.ReadPixels(new Rect(0, 0, SunShadowRenderTex.width, SunShadowRenderTex.height), 0, 0);
+					SunShadowRenderImage.Apply();
+
+					
+
+					RenderTexture.active = current;
+					yield return new WaitForSeconds(0.03f); // 0.03s * 16 = ~0.5s
+					current = RenderTexture.active;
+				}
 			}
 		}
 
@@ -325,6 +349,19 @@ namespace ProceduralSkyMod
 			cloudRendTex.wrapMode = TextureWrapMode.Clamp;
 			cloudRendTex.filterMode = FilterMode.Point;
 			cloudRendTex.anisoLevel = 0;
+		}
+
+		private static void SetupShadowRenderTex ()
+		{
+			sunShadowRendTex = new RenderTexture(64, 64, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			sunShadowRendTex.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+			sunShadowRendTex.antiAliasing = 1;
+			sunShadowRendTex.depth = 0;
+			sunShadowRendTex.useMipMap = false;
+			sunShadowRendTex.useDynamicScale = false;
+			sunShadowRendTex.wrapMode = TextureWrapMode.Clamp;
+			sunShadowRendTex.filterMode = FilterMode.Bilinear;
+			sunShadowRendTex.anisoLevel = 0;
 		}
 
 		public static string[] SearchAvailableWeatherStateFilesXML ()

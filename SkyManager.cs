@@ -50,22 +50,16 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
-			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
-			//
-			//SunLight.cookieSize = 1000;
-			//Texture2D tex = new Texture2D(WeatherSource.CloudRenderImage2.width, WeatherSource.CloudRenderImage2.height);
-			//Graphics.CopyTexture(WeatherSource.CloudRenderImage2, tex);
-			//for (int x = 0; x < tex.width; x++)
-			//{
-			//	for (int y = 0; y < tex.height; y++)
-			//	{
-			//		tex.SetPixel(x, y, new Color(1, 1, 1, 1 - tex.GetPixel(x, y).a));
-			//	}
-			//}
-			//tex.Apply();
-			//SunLight.cookie = tex;
-			//
-			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
+			Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
+			for (int x = 0; x < tex.width; x++)
+			{
+				for (int y = 0; y < tex.height; y++)
+				{
+					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
+				}
+			}
+			tex.Apply();
+			SunLight.cookie = tex;
 
 #if !CYBEX_TIME
 			// fauxnik time algo
@@ -674,10 +668,10 @@ namespace ProceduralSkyMod
 			r = GUILayoutUtility.GetRect(200, 200, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
-			//GUILayout.Label("RenderTex");
-			//if (WeatherSource.CloudRenderImage2 == null) return;
-			//r = GUILayoutUtility.GetRect(256, 256);
-			//GUI.DrawTexture(r, WeatherSource.CloudRenderImage2);
+			GUILayout.Label("Sun Shadows");
+			tex = WeatherSource.SunShadowRenderImage;
+			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
+			GUI.DrawTexture(r, tex);
 
 			GUILayout.EndVertical(); // cloud render box end
 
