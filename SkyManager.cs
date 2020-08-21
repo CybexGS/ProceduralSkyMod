@@ -50,7 +50,10 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
-			SunLight.cookie = WeatherSource.SunShadowRenderImage;
+			if (Main.settings.cloudShadowsEnabled)
+				SunLight.cookie = WeatherSource.SunShadowRenderImage;
+			else
+				SunLight.cookie = null;
 
 #if !CYBEX_TIME
 			// fauxnik time algo

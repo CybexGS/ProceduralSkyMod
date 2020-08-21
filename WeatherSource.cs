@@ -362,7 +362,7 @@ namespace ProceduralSkyMod
 
 		private static void SetupShadowRenderTex ()
 		{
-			sunShadowRendTex = new RenderTexture(64, 64, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			sunShadowRendTex = new RenderTexture(128, 128, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 			sunShadowRendTex.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
 			sunShadowRendTex.antiAliasing = 1;
 			sunShadowRendTex.depth = 0;

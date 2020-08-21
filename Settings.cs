@@ -17,6 +17,9 @@ namespace ProceduralSkyMod
 		[Draw(Label = "Longitude (+E/-W)", Min = -180, Max = 180)]
 		public float longitude = (float)(TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).TotalHours + (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now) ? -1 : 0)) * 15;
 
+		[Draw(Label = "Cloud shadows (Preview)")]
+		public bool cloudShadowsEnabled = true;
+
 		override public void Save (UnityModManager.ModEntry entry)
 		{
 			Save<Settings>(this, entry);

@@ -75,7 +75,7 @@ namespace ProceduralSkyMod
 			dirLight.shadows = LightShadows.Soft;
 			dirLight.shadowStrength = 0.9f;
 			dirLight.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
-			dirLight.cookieSize = 1000;
+			dirLight.cookieSize = 2000;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
@@ -149,7 +149,11 @@ namespace ProceduralSkyMod
 			sunShadowRendTexCam.cullingMask = 0;
 			sunShadowRendTexCam.cullingMask |= 1 << 31;
 
-			sunShadowRendTexCam.fieldOfView = dirLight.spotAngle; // not perfect but good enough for now at least
+			//sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
+			sunShadowRendTexCam.orthographic = true;
+			sunShadowRendTexCam.orthographicSize = 2;
+			sunShadowRendTexCam.nearClipPlane = 0;
+			sunShadowRendTexCam.farClipPlane = 100;
 
 			sunShadowRendTexCam.renderingPath = RenderingPath.Forward;
 			sunShadowRendTexCam.targetTexture = WeatherSource.SunShadowRenderTex;
