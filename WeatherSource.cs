@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System.Linq;
+using System.Xml;
 #if DEBUG
 using System;
-using System.Xml;
 #endif
 
 namespace ProceduralSkyMod
@@ -121,6 +121,9 @@ namespace ProceduralSkyMod
 
 #if DEBUG
 		public static void CreateNewXML (WeatherState state)
+#else
+		private static void CreateNewXML (WeatherState state)
+#endif
 		{
 			XmlDocument doc = new XmlDocument();
 			XmlNode rootNode = doc.CreateElement("WeatherState");
@@ -176,7 +179,6 @@ namespace ProceduralSkyMod
 
 			doc.Save(WeatherSource.XMLWeatherStatePath + state.fileName);
 		}
-#endif
 	}
 
 	public delegate void CloudRenderDelegate ();
@@ -362,7 +364,7 @@ namespace ProceduralSkyMod
 
 		private static void SetupShadowRenderTex ()
 		{
-			sunShadowRendTex = new RenderTexture(128, 128, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			sunShadowRendTex = new RenderTexture(64, 64, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 			sunShadowRendTex.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
 			sunShadowRendTex.antiAliasing = 1;
 			sunShadowRendTex.depth = 0;
