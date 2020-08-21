@@ -80,6 +80,7 @@ namespace ProceduralSkyMod
 			dirLight.shadows = LightShadows.Soft;
 			dirLight.shadowStrength = 0.9f;
 			dirLight.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
+			dirLight.cookieSize = 1000;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
@@ -147,7 +148,9 @@ namespace ProceduralSkyMod
 			Camera sunShadowRendTexCam = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
 			sunShadowRendTexCam.transform.SetParent(dirLight.transform);
 			sunShadowRendTexCam.transform.ResetLocal();
-			sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
+			//sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
+			sunShadowRendTexCam.orthographic = true;
+			sunShadowRendTexCam.orthographicSize = 10;
 			sunShadowRendTexCam.clearFlags = CameraClearFlags.Color;
 			sunShadowRendTexCam.backgroundColor = Color.clear;
 			sunShadowRendTexCam.cullingMask = 0;

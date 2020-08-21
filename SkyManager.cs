@@ -16,7 +16,7 @@ namespace ProceduralSkyMod
 		public Transform SunPathCenter { get; set; }
 		public Transform MoonPathCenter { get; set; }
 
-		public Light SunLight { get; set; }
+		public static Light SunLight { get; set; }
 		public Material StarMaterial { get; set; }
 		public Material SkyMaterial { get; set; }
 		public Material CloudMaterial { get; set; }
@@ -41,22 +41,6 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
-			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
-			//
-			SunLight.cookieSize = 1000;
-			Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
-			for (int x = 0; x < tex.width; x++)
-			{
-				for (int y = 0; y < tex.height; y++)
-				{
-					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
-				}
-			}
-			tex.Apply();
-			SunLight.cookie = tex;
-			//
-			// <<<<<<<<<< <<<<<<<<<< WORKS AS POC >>>>>>>>>> >>>>>>>>>>
-
 #if !CYBEX_TIME
 			// fauxnik time algo
 			ProceduralSkyTimeSource.Instance.CalculateTimeProgress(Time.deltaTime);
