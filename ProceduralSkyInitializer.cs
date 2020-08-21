@@ -52,6 +52,14 @@ namespace ProceduralSkyMod
 			skyMaterial.SetColor("_GroundColor", new Color(0.369f, 0.349f, 0.341f, 1f));
 
 #if DEBUG
+			Debug.Log(">>> >>> >>> Setting Up Procedural Sky Master...");
+#endif
+			// Setup dynamic sky
+			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
+			psMaster.transform.Reset();
+			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
+
+#if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Directional Light...");
 #endif
 			// Find directional light and setup
@@ -66,14 +74,8 @@ namespace ProceduralSkyMod
 			dirLight.type = LightType.Directional;
 			dirLight.shadows = LightShadows.Soft;
 			dirLight.shadowStrength = 0.9f;
-
-#if DEBUG
-			Debug.Log(">>> >>> >>> Setting Up Procedural Sky Master...");
-#endif
-			// Setup dynamic sky
-			GameObject psMaster = new GameObject() { name = "ProceduralSkyMod" };
-			psMaster.transform.Reset();
-			SkyManager skyManager = psMaster.AddComponent<SkyManager>();
+			dirLight.gameObject.AddComponent<LookAtConstraintOnPreCull>().target = psMaster.transform;
+			dirLight.cookieSize = 1000;
 
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
@@ -137,6 +139,27 @@ namespace ProceduralSkyMod
 			WeatherSource.CloudRenderTexCam = cloudRendTexCam;
 			cloudRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
 
+			// sun shadow render texture cam
+			Camera sunShadowRendTexCam = new GameObject() { name = "SunShadowRendTextCam" }.AddComponent<Camera>();
+			sunShadowRendTexCam.transform.SetParent(dirLight.transform);
+			sunShadowRendTexCam.transform.ResetLocal();
+			//sunShadowRendTexCam.fieldOfView = dirLight.spotAngle;
+			sunShadowRendTexCam.orthographic = true;
+			sunShadowRendTexCam.orthographicSize = 10;
+			sunShadowRendTexCam.clearFlags = CameraClearFlags.Color;
+			sunShadowRendTexCam.backgroundColor = Color.clear;
+			sunShadowRendTexCam.cullingMask = 0;
+			sunShadowRendTexCam.cullingMask |= 1 << 31;
+			sunShadowRendTexCam.renderingPath = RenderingPath.Forward;
+			sunShadowRendTexCam.targetTexture = WeatherSource.SunShadowRenderTex;
+			sunShadowRendTexCam.useOcclusionCulling = false;
+			sunShadowRendTexCam.allowHDR = false;
+			sunShadowRendTexCam.allowMSAA = false;
+			sunShadowRendTexCam.allowDynamicResolution = false;
+			sunShadowRendTexCam.forceIntoRenderTexture = true;
+			WeatherSource.SunShadowRenderTexCam = sunShadowRendTexCam;
+			sunShadowRendTexCam.enabled = false; // disable the camera, renders will be triggered by script
+
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
 #endif
@@ -167,7 +190,7 @@ namespace ProceduralSkyMod
 			cloudPlane.transform.SetParent(psMaster.transform);
 			cloudPlane.transform.ResetLocal();
 			cloudPlane.layer = 31;
-
+			
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Skybox Night...");
 #endif
