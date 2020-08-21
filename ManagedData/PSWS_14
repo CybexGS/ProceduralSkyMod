@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_14</fileName>
+    <name>OvercastUgly</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>0</cloudClearSky>
+    <cloudNoiseScale>1.177966</cloudNoiseScale>
+    <cloudChange>0.179661</cloudChange>
+    <cloudSpeed>0.001</cloudSpeed>
+    <cloudBrightness>0.9025424</cloudBrightness>
+    <cloudGradient>0.2043466</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>

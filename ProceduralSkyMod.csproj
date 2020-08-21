@@ -48,6 +48,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Derail Valley\DerailValley_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Derail Valley\DerailValley_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="RedworkDE.DvTime">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Derail Valley\Mods\RedworkDE.DvTime\RedworkDE.DvTime.dll</HintPath>
     </Reference>
@@ -365,21 +369,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DateToSkyMapper.cs" />
+    <Compile Include="DvTimeAdapter.cs" />
     <Compile Include="ProceduralSkyInitializer.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="ProceduralSkyTimeSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CybexTime.cs" />
+    <Compile Include="RainController.cs" />
+    <Compile Include="ReflectionProbeUpdater.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="SkyCamConstraint.cs" />
+    <Compile Include="Constraints.cs" />
     <Compile Include="SkyManager.cs" />
-    <Compile Include="SkySaveLoad.cs" />
-    <Compile Include="TimeSource.cs" />
+    <Compile Include="SkySaveManager.cs" />
+    <Compile Include="TimeSourceAdapter.cs" />
     <Compile Include="TransformExtensions.cs" />
     <Compile Include="WeatherSource.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".gitignore" />
-    <None Include="Info.json" />
-    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

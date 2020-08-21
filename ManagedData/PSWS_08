@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_08</fileName>
+    <name>OvercastRainHeavy</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>0</cloudClearSky>
+    <cloudNoiseScale>1.822218</cloudNoiseScale>
+    <cloudChange>0.2752871</cloudChange>
+    <cloudSpeed>0.00352966</cloudSpeed>
+    <cloudBrightness>0.289457</cloudBrightness>
+    <cloudGradient>0.4755786</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>1</rainParticleStrength>
+  </Rain>
+</WeatherState>

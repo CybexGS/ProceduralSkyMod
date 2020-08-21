@@ -13,12 +13,17 @@ namespace ProceduralSkyMod
 		public static bool initialized;
 		public static Settings settings;
 
-		public static string Path { get; private set; }
+		public static string ModPath { get; private set; }
+		public static string ModVersion { get => JsonUtility.FromJson<UnityModManagerNet.UnityModManager.ModInfo>(File.ReadAllText(Path.Combine(ModPath, "Info.json"))).Version; }
 
 		static bool Load (UnityModManager.ModEntry modEntry)
 		{
 			try { settings = Settings.Load<Settings>(modEntry); } catch { }
-			Path = modEntry.Path;
+			if (DvTimeAdapter.Available)
+            {
+				RedworkDE.DvTime.TimeUpdater.RegisterTimeSource += DvTimeAdapter.InstallProSkyTimeSource;
+			}
+			ModPath = modEntry.Path;
 			modEntry.OnToggle = OnToggle;
 			modEntry.OnGUI = OnGUI;
 			modEntry.OnSaveGUI = OnSaveGUI;

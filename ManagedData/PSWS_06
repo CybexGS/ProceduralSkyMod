@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_06</fileName>
+    <name>Overcast</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>0</cloudClearSky>
+    <cloudNoiseScale>1.822218</cloudNoiseScale>
+    <cloudChange>0.2752871</cloudChange>
+    <cloudSpeed>0.00352966</cloudSpeed>
+    <cloudBrightness>0.5606435</cloudBrightness>
+    <cloudGradient>0.4226125</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>

@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_13</fileName>
+    <name>FullyClear</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>10</cloudClearSky>
+    <cloudNoiseScale>1</cloudNoiseScale>
+    <cloudChange>0.179661</cloudChange>
+    <cloudSpeed>0.001</cloudSpeed>
+    <cloudBrightness>0.8389831</cloudBrightness>
+    <cloudGradient>0.1217195</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>
