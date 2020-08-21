@@ -50,16 +50,7 @@ namespace ProceduralSkyMod
 
 		void Update ()
 		{
-			Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
-			for (int x = 0; x < tex.width; x++)
-			{
-				for (int y = 0; y < tex.height; y++)
-				{
-					tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
-				}
-			}
-			tex.Apply();
-			SunLight.cookie = tex;
+			SunLight.cookie = WeatherSource.SunShadowRenderImage;
 
 #if !CYBEX_TIME
 			// fauxnik time algo
@@ -113,24 +104,25 @@ namespace ProceduralSkyMod
 
 			Vector3 highLatitudeCorrection = SunPathCenter.parent.TransformVector(SunPathCenter.localPosition) - SunPathCenter.parent.position / DateToSkyMapper.maxProjectedSunOffset;
 			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + highLatitudeCorrection;
-			SunLight.intensity = Mathf.Clamp01(sunPos.y);
-			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, SunLight.intensity);
+			float sunOverHorizonFac = Mathf.Clamp01(sunPos.y);
+			SunLight.intensity = sunOverHorizonFac * 1.5f;
+			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, sunOverHorizonFac);
 
-			StarMaterial.SetFloat("_Visibility", (-SunLight.intensity + 1) * .01f);
+			StarMaterial.SetFloat("_Visibility", (-sunOverHorizonFac + 1) * .01f);
 
-			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, SunLight.intensity));
+			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, sunOverHorizonFac));
 			// gives aproximate moon phase
 			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(SunPathCenter.right, MoonPathCenter.right, SunPathCenter.forward) / 180);
-			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, SunLight.intensity));
+			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, sunOverHorizonFac));
 
-			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, SunLight.intensity));
-			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(SunLight.intensity * 10)));
+			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, sunOverHorizonFac));
+			SkyMaterial.SetFloat("_AtmosphereThickness", Mathf.Lerp(0.1f, 1f, Mathf.Clamp01(sunOverHorizonFac * 10)));
 
 			CloudMaterial.SetFloat("_NScale", WeatherSource.CloudNoiseScaleBlend);
 			CloudMaterial.SetFloat("_ClearSky", WeatherSource.CloudClearSkyBlend);
-			float facC = Mathf.Lerp(.002f, 1f, SunLight.intensity);
+			float facC = Mathf.Lerp(.002f, 1f, sunOverHorizonFac);
 			CloudMaterial.SetFloat("_CloudBright", WeatherSource.CloudBrightnessBlend * facC);
-			float facG = Mathf.Lerp(.25f, 0.0f, SunLight.intensity);
+			float facG = Mathf.Lerp(.25f, 0.0f, sunOverHorizonFac);
 			CloudMaterial.SetFloat("_CloudGradient", WeatherSource.CloudGradientBlend + facG);
 			CloudMaterial.SetFloat("_CloudSpeed", WeatherSource.CloudSpeedBlend);
 			CloudMaterial.SetFloat("_CloudChange", WeatherSource.CloudChangeBlend);
@@ -146,8 +138,8 @@ namespace ProceduralSkyMod
 			}
 #endif
 
-			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, SunLight.intensity);
-			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, SunLight.intensity);
+			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, sunOverHorizonFac);
+			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, sunOverHorizonFac);
 			
 #if DEBUG
 			if (devGui != null && devGui.rainOverride)
@@ -670,7 +662,7 @@ namespace ProceduralSkyMod
 
 			GUILayout.Label("Sun Shadows");
 			tex = WeatherSource.SunShadowRenderImage;
-			r = GUILayoutUtility.GetRect(64, 64, GUILayout.ExpandWidth(false));
+			r = GUILayoutUtility.GetRect(200, 200, GUILayout.ExpandWidth(false));
 			GUI.DrawTexture(r, tex);
 
 			GUILayout.EndVertical(); // cloud render box end

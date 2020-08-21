@@ -329,7 +329,16 @@ namespace ProceduralSkyMod
 					SunShadowRenderImage.ReadPixels(new Rect(0, 0, SunShadowRenderTex.width, SunShadowRenderTex.height), 0, 0);
 					SunShadowRenderImage.Apply();
 
-					
+					Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
+					for (int x = 0; x < tex.width; x++)
+					{
+						for (int y = 0; y < tex.height; y++)
+						{
+							tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
+						}
+					}
+					tex.Apply();
+					SunShadowRenderImage = tex;
 
 					RenderTexture.active = current;
 					yield return new WaitForSeconds(0.03f); // 0.03s * 16 = ~0.5s
