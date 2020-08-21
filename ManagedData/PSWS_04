@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_04</fileName>
+    <name>CloudyRainMedium</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>0.9823217</cloudClearSky>
+    <cloudNoiseScale>4.135777</cloudNoiseScale>
+    <cloudChange>0.2752871</cloudChange>
+    <cloudSpeed>0.00352966</cloudSpeed>
+    <cloudBrightness>0.6326774</cloudBrightness>
+    <cloudGradient>0.378121</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0.4957627</rainParticleStrength>
+  </Rain>
+</WeatherState>
