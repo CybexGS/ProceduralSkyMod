@@ -287,17 +287,18 @@ namespace ProceduralSkyMod
 #if DEBUG
 				LastRNDWeatherChange = rnd;
 #endif
+				Debug.Log($"ProSkyMod tries to change weather, probability check: {WeatherChangeProbability > rnd}");
 				if (WeatherChangeProbability > rnd)
 				{
 					NextWeatherState = WeatherState.LoadFromXML(AvailableWeatherStateFilesXML[(int)(UnityEngine.Random.value * AvailableWeatherStateFilesXML.Length)]);
 					if (NextWeatherState == CurrentWeatherState)
 					{
 						NextWeatherState = null;
-						WeatherChangeProbability += 0.1f;
+						WeatherChangeProbability += 0.2f;
 					}
-					else WeatherChangeProbability = 0.1f;
+					else WeatherChangeProbability = 0.2f;
 				}
-				else WeatherChangeProbability += 0.1f;
+				else WeatherChangeProbability += 0.2f;
 			}
 		}
 
