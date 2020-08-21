@@ -1,16 +1,10 @@
-﻿using System.Linq;
-using System.IO;
-using UnityModManagerNet;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.PostProcessing;
-using System.Collections.Generic;
 
 namespace ProceduralSkyMod
 {
 	public class ProceduralSkyInitializer : MonoBehaviour
 	{
-		// TODO: fix VR
 		public const float sunDistanceToCamera = 10;
 		public const float moonDistanceToCamera = 10;
 

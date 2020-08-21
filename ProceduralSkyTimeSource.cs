@@ -37,9 +37,7 @@ namespace ProceduralSkyMod
 
 		public static void LoadSavedTime ()
 		{
-			Debug.Log($"BEFORE LOAD {Instance.LocalTime}");
 			Instance.LocalTime = DateTime.Parse(SkySaveManager.State.internalDate);
-			Debug.Log($"AFTER LOAD {Instance.LocalTime}, PARSED {DateTime.Parse(SkySaveManager.State.internalDate)} (string {SkySaveManager.State.internalDate})");
 		}
 
 		public void CalculateTimeProgress(float deltaSeconds)

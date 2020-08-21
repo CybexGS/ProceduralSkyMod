@@ -2,7 +2,7 @@
 using UnityEngine;
 #if DEBUG
 using System.IO;
-using System.Linq;
+using System.Xml;
 #endif
 
 namespace ProceduralSkyMod
@@ -154,15 +154,21 @@ namespace ProceduralSkyMod
 
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, SunLight.intensity);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, SunLight.intensity);
-
-			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrengthBlend);
-			RainController.SetRainStrength(WeatherSource.RainStrengthBlend);
+			
 #if DEBUG
 			if (devGui != null && devGui.rainOverride)
 			{
 				RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, devGui.loadedWeatherState.rainParticleStrength);
 				RainController.SetRainStrength(devGui.loadedWeatherState.rainParticleStrength);
 			}
+			else
+			{
+				RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrengthBlend);
+				RainController.SetRainStrength(WeatherSource.RainStrengthBlend);
+			}
+#else
+			RenderSettings.fogDensity = Mathf.Lerp(defaultFogDensity, defaultFogDensity * 3, WeatherSource.RainStrengthBlend);
+			RainController.SetRainStrength(WeatherSource.RainStrengthBlend);
 #endif
 
 			RainController.SetRainColor(new Color(RenderSettings.fogColor.r + 0.5f, RenderSettings.fogColor.g + 0.5f, RenderSettings.fogColor.b + 0.5f, 1));
@@ -277,9 +283,8 @@ namespace ProceduralSkyMod
 			GUILayout.BeginHorizontal(); // total start
 			GUILayout.Space(3);
 
-			GUILayout.BeginVertical(); // row 0 begin
-
-			
+			GUILayout.BeginVertical(GUILayout.Width(256)); // row 0 begin
+			GUILayout.Space(3);
 
 #if !CYBEX_TIME
 			// date & time override box (fauxnik time algo compatible)
@@ -698,7 +703,17 @@ namespace ProceduralSkyMod
 				files = Directory.GetFiles(path);
 				filenames = new string[files.Length];
 				for (int i = 0; i < files.Length; i++)
+				{
 					filenames[i] = Path.GetFileName(files[i]);
+					string add = "incompatible file";
+					try
+					{
+						XmlDocument doc = new XmlDocument();
+						doc.Load(files[i]);
+						add = doc.DocumentElement.FirstChild.LastChild.InnerText;
+					} catch { }
+					filenames[i] += $" ({add})";
+				}
 				active = true;
 			}
 
