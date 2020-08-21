@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_10</fileName>
+    <name>Cloudy2</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>1.617915</cloudClearSky>
+    <cloudNoiseScale>1.970522</cloudNoiseScale>
+    <cloudChange>0.1193549</cloudChange>
+    <cloudSpeed>0.001</cloudSpeed>
+    <cloudBrightness>0.9208129</cloudBrightness>
+    <cloudGradient>0.1620193</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>

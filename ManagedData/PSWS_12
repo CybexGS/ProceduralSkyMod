@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_12</fileName>
+    <name>SwellingClouds2</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>4.872881</cloudClearSky>
+    <cloudNoiseScale>4.915254</cloudNoiseScale>
+    <cloudChange>0.179661</cloudChange>
+    <cloudSpeed>0.001</cloudSpeed>
+    <cloudBrightness>0.8432204</cloudBrightness>
+    <cloudGradient>0.1217195</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>

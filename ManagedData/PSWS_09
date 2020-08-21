@@ -1,0 +1,17 @@
+<WeatherState>
+  <Names>
+    <fileName>PSWS_09</fileName>
+    <name>OvercastLight</name>
+  </Names>
+  <Clouds>
+    <cloudClearSky>0.6355932</cloudClearSky>
+    <cloudNoiseScale>1.822218</cloudNoiseScale>
+    <cloudChange>0.2752871</cloudChange>
+    <cloudSpeed>0.00352966</cloudSpeed>
+    <cloudBrightness>0.9631858</cloudBrightness>
+    <cloudGradient>0.3166803</cloudGradient>
+  </Clouds>
+  <Rain>
+    <rainParticleStrength>0</rainParticleStrength>
+  </Rain>
+</WeatherState>
