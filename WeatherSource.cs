@@ -254,19 +254,16 @@ namespace ProceduralSkyMod
 				Debug.LogError("WeatherSource.cs: Weather State Changer Error");
 				yield break;
 			}
-
-			WeatherChangeProbability = 0.1f;
-			//WeatherChangeProbability = 0.7f; // DEBUG
-			int frameRate = 30;
+			
+			WeatherChangeProbability = 0.2f;
+			float frameRate = 30f;
 			while (true)
 			{
 				for (int i = 0; i < Mathf.Max(Main.settings.DayLengthSecondsRT / 4, 600) * frameRate; i++) // break out of loop 4 times a day but wait a minimum of 10 minutes
-				//for (int i = 0; i < 60 * frameRate;) // DEBUG
 				{
 					if (NextWeatherState != null && !DV.AppUtil.IsPaused)
 					{
 						WeatherStateBlending += 0.0033334f / frameRate; // it will take just over 5 minutes to change state copletely to target
-						//WeatherStateBlending += 0.0333334f / frameRate; // DEBUG
 						if (WeatherStateBlending > 1)
 						{
 							CurrentWeatherState = NextWeatherState;
@@ -279,7 +276,7 @@ namespace ProceduralSkyMod
 					else
 					{
 						i++;
-						yield return new WaitForSeconds(1 / frameRate);
+						yield return new WaitForSeconds(1f / frameRate);
 					}
 				}
 
@@ -287,7 +284,6 @@ namespace ProceduralSkyMod
 #if DEBUG
 				LastRNDWeatherChange = rnd;
 #endif
-				Debug.Log($"ProSkyMod tries to change weather, probability check: {WeatherChangeProbability > rnd}");
 				if (WeatherChangeProbability > rnd)
 				{
 					NextWeatherState = WeatherState.LoadFromXML(AvailableWeatherStateFilesXML[(int)(UnityEngine.Random.value * AvailableWeatherStateFilesXML.Length)]);
