@@ -257,6 +257,7 @@ namespace ProceduralSkyMod
 			
 			WeatherChangeProbability = 0.2f;
 			float frameRate = 30f;
+			Debug.Log($"{System.DateTime.Now} ProSkyMod: Weather changer started!");
 			while (true)
 			{
 				for (int i = 0; i < Mathf.Max(Main.settings.DayLengthSecondsRT / 4, 600) * frameRate; i++) // break out of loop 4 times a day but wait a minimum of 10 minutes
