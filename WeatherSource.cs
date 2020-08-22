@@ -295,6 +295,8 @@ namespace ProceduralSkyMod
 					else WeatherChangeProbability = 0.2f;
 				}
 				else WeatherChangeProbability += 0.2f;
+
+				Debug.Log($"{System.DateTime.Now} ProSkyMod: Try change weather: probability check = {WeatherChangeProbability > rnd}, next state = {NextWeatherState?.name}");
 			}
 		}
 
