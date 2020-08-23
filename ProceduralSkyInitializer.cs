@@ -96,6 +96,12 @@ namespace ProceduralSkyMod
 			skyCam.cullingMask = 0;
 			skyCam.cullingMask |= 1 << 31;
 			skyCam.depth = -2;
+
+			// trying to fix VR bug, success? Will this solve double vision as well?
+			// bug https://discordapp.com/channels/332511223536943105/553226513995268106/747050265806503987
+			// source https://answers.unity.com/questions/1680732/is-it-possible-to-override-the-cannot-set-field-of.html
+			skyCam.stereoTargetEye = StereoTargetEyeMask.None;
+
 			skyCam.fieldOfView = mainCam.fieldOfView;
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
@@ -108,6 +114,12 @@ namespace ProceduralSkyMod
 			clearCam.clearFlags = CameraClearFlags.Skybox;
 			clearCam.cullingMask = 0;
 			clearCam.depth = -3;
+
+			// trying to fix VR bug, success? Will this solve double vision as well?
+			// bug https://discordapp.com/channels/332511223536943105/553226513995268106/747050265806503987
+			// source https://answers.unity.com/questions/1680732/is-it-possible-to-override-the-cannot-set-field-of.html
+			clearCam.stereoTargetEye = StereoTargetEyeMask.None;
+
 			clearCam.fieldOfView = mainCam.fieldOfView;
 
 			SkyCamConstraint constraint = skyCam.gameObject.AddComponent<SkyCamConstraint>();
