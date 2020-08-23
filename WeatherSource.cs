@@ -303,20 +303,23 @@ namespace ProceduralSkyMod
 
 		public static IEnumerator UpdateCloudRenderTex ()
 		{
+			RenderTexture current = null;
+			CloudRenderImage0 = new Texture2D(16, 16);
+			CloudRenderImage1 = new Texture2D(32, 32);
+			CloudRenderImage2 = new Texture2D(64, 64);
+			SunShadowRenderImage = new Texture2D(SunShadowRenderTex.width, SunShadowRenderTex.height);
+
 			while (true)
 			{
-				RenderTexture current = RenderTexture.active;
+				current = RenderTexture.active;
 
 				RenderTexture.active = CloudRenderTex;
 				CloudRenderTexCam.Render();
 
-				CloudRenderImage0 = new Texture2D(16, 16);
 				CloudRenderImage0.ReadPixels(new Rect(24, 24, 16, 16), 0, 0);
 				CloudRenderImage0.Apply();
-				CloudRenderImage1 = new Texture2D(32, 32);
 				CloudRenderImage1.ReadPixels(new Rect(16, 16, 32, 32), 0, 0);
 				CloudRenderImage1.Apply();
-				CloudRenderImage2 = new Texture2D(64, 64);
 				CloudRenderImage2.ReadPixels(new Rect(0, 0, 64, 64), 0, 0);
 				CloudRenderImage2.Apply();
 
@@ -324,23 +327,21 @@ namespace ProceduralSkyMod
 
 				for (int i = 0; i < 16; i++)
 				{
-					RenderTexture.active = SunShadowRenderTex;
-					SunShadowRenderTexCam.Render();
-
-					SunShadowRenderImage = new Texture2D(SunShadowRenderTex.width, SunShadowRenderTex.height);
-					SunShadowRenderImage.ReadPixels(new Rect(0, 0, SunShadowRenderTex.width, SunShadowRenderTex.height), 0, 0);
-					SunShadowRenderImage.Apply();
-
-					Texture2D tex = new Texture2D(WeatherSource.SunShadowRenderImage.width, WeatherSource.SunShadowRenderImage.height);
-					for (int x = 0; x < tex.width; x++)
+					if (Main.settings.cloudShadowsEnabled)
 					{
-						for (int y = 0; y < tex.height; y++)
+						RenderTexture.active = SunShadowRenderTex;
+						SunShadowRenderTexCam.Render();
+
+						SunShadowRenderImage.ReadPixels(new Rect(0, 0, SunShadowRenderTex.width, SunShadowRenderTex.height), 0, 0);
+						for (int x = 0; x < SunShadowRenderImage.width; x++)
 						{
-							tex.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
+							for (int y = 0; y < SunShadowRenderImage.height; y++)
+							{
+								SunShadowRenderImage.SetPixel(x, y, new Color(1, 1, 1, 1 - WeatherSource.SunShadowRenderImage.GetPixel(x, y).a));
+							}
 						}
+						SunShadowRenderImage.Apply();
 					}
-					tex.Apply();
-					SunShadowRenderImage = tex;
 
 					RenderTexture.active = current;
 					yield return new WaitForSeconds(0.03f); // 0.03s * 16 = ~0.5s
