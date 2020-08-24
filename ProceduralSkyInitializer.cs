@@ -105,8 +105,10 @@ namespace ProceduralSkyMod
 			skyCam.fieldOfView = mainCam.fieldOfView;
 			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
+
 			// this localScale negates VR stereo separation
-			skyCamGimbal.transform.localScale = Vector3.zero;
+			//skyCamGimbal.transform.localScale = Vector3.zero; // disabled to see if this fixes oculus quest vr with the changes above
+
 			skyCamGimbal.AddComponent<PositionConstraintOnPreCull>().source = psMaster.transform;
 
 			// clear cam
