@@ -42,18 +42,6 @@ namespace ProceduralSkyMod
 
 			Material _defaultCubemapMat = assets.LoadAsset<Material>("Assets/Materials/DefaultCubemapSkybox.mat");
 			Material _layeredCubemapMat = assets.LoadAsset<Material>("Assets/Materials/LayeredCubemapSkybox.mat");
-			//Shader _cubemapOverlay = assets.LoadAsset<Shader>("Assets/Shaders/CubemapOverlay");
-
-			assets.Unload(false);
-
-#if DEBUG
-			Debug.Log(">>> >>> >>> Loading ZWrite Shader Assets...");
-#endif
-			assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/zwrite_test");
-
-			Material _starboxMat = assets.LoadAsset<Material>("Assets/Materials/StarBox_ZWrite.mat");
-			Material _cloudMat = assets.LoadAsset<Material>("Assets/Materials/Clouds.mat");
-			Material _cubemapOverlay = assets.LoadAsset<Material>("Assets/Materials/CubemapOverlay.mat");
 
 			assets.Unload(false);
 
@@ -108,7 +96,6 @@ namespace ProceduralSkyMod
 			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
 			clearCam.transform.SetParent(psMaster.transform, false);
 			clearCam.clearFlags = CameraClearFlags.Skybox;
-			//clearCam.backgroundColor = Color.clear;
 			clearCam.cullingMask = 0;
 			clearCam.enabled = false;
 			
@@ -125,20 +112,14 @@ namespace ProceduralSkyMod
 			skyCam.cullingMask |= 1 << 31;
 			skyCam.farClipPlane = 100;
 			skyCam.enabled = false;
-			/*
-			// override skyCam's skybox with skyMaterial to render sun disk
-			Skybox skyCamSkybox = skyCam.gameObject.AddComponent<Skybox>();
-			skyCamSkybox.material = skyMaterial;
-			*/
+			
 			// skyCamOutputMat will be used for global skybox
 			int skyCamTexSize = 4096;
 			RenderTexture clearCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.DefaultHDR);
 			clearCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			RenderTexture skyCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.DefaultHDR);
 			skyCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-			//Material skyCamOutputMat = _defaultCubemapMat;
 			Material skyCamOutputMat = _layeredCubemapMat;
-			//Material skyCamOutputMat = _cubemapOverlay;
 			skyCamOutputMat.SetTexture("_Tex", clearCamTex); // shader: Skybox/Cubemap
 			skyCamOutputMat.SetTexture("_AlphaTex", skyCamTex); // shader: Skybox/CubemapOverlay
 
@@ -146,7 +127,6 @@ namespace ProceduralSkyMod
 			clearCam.RenderToCubemap(clearCamTex);
 			skyCam.RenderToCubemap(skyCamTex);
 			
-
 			// cloud render texture cam
 			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
 			cloudRendTexCam.transform.SetParent(psMaster.transform);
@@ -223,9 +203,6 @@ namespace ProceduralSkyMod
 			filter.sharedMesh = _cloudPrefab.GetComponent<MeshFilter>().sharedMesh;
 			MeshRenderer renderer = cloudPlane.AddComponent<MeshRenderer>();
 			Material cloudMat = renderer.sharedMaterial = _cloudPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-			//Material cloudMat = renderer.sharedMaterial = _cloudMat;
-			//cloudMat.shader = _cloudShader;
-			//cloudMat.shader = _cloudMat.shader;
 
 			cloudPlane.transform.SetParent(psMaster.transform);
 			cloudPlane.transform.ResetLocal();
@@ -254,10 +231,6 @@ namespace ProceduralSkyMod
 #endif
 			GameObject starBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			starBox.GetComponent<MeshRenderer>().sharedMaterial = _starMaterial;
-			//starBox.GetComponent<MeshRenderer>().sharedMaterial = _starboxMat;
-			//_starboxMat.SetTexture("_Tex", _starMaterial.GetTexture("_Tex"));
-			//_starMaterial.shader = _starboxShader;
-			//_starMaterial.shader = _starboxMat.shader;
 			starBox.transform.SetParent(skyboxNight.transform);
 			starBox.transform.ResetLocal();
 			starBox.transform.localRotation = Quaternion.Euler(new Vector3(0, 68.5f, 28.9f));

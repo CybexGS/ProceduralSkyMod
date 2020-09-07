@@ -57,12 +57,8 @@ namespace ProceduralSkyMod
 			else
 				SunLight.cookie = null;
 
-			//RenderTexture current = RenderTexture.active;
-			//RenderTexture.active = SkyCamTex;
-			//SkyCamTex.DiscardContents();
 			ClearCam.RenderToCubemap(ClearCamTex);
 			SkyCam.RenderToCubemap(SkyCamTex);
-			//RenderTexture.active = current;
 
 #if !CYBEX_TIME
 			// fauxnik time algo
