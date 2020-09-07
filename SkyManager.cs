@@ -117,6 +117,7 @@ namespace ProceduralSkyMod
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, sunOverHorizonFac);
 
 			StarMaterial.SetFloat("_Visibility", (-sunOverHorizonFac + 1) * .25f);
+			StarMaterial.SetFloat("_Exposure", 3f);
 
 			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, sunOverHorizonFac));
 			// gives aproximate moon phase

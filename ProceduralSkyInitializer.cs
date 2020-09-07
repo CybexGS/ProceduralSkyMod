@@ -117,7 +117,7 @@ namespace ProceduralSkyMod
 			int skyCamTexSize = 4096;
 			RenderTexture clearCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.DefaultHDR);
 			clearCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-			RenderTexture skyCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.DefaultHDR);
+			RenderTexture skyCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.ARGBFloat);
 			skyCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			Material skyCamOutputMat = _layeredCubemapMat;
 			skyCamOutputMat.SetTexture("_Tex", clearCamTex); // shader: Skybox/Cubemap
