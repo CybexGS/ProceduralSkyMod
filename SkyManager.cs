@@ -26,8 +26,10 @@ namespace ProceduralSkyMod
 		public Material CloudMaterial { get; set; }
 		public Material MoonMaterial { get; set; }
 
-		public RenderTexture SkyCamTex { get; set; }
 		public Camera SkyCam { get; set; }
+		public RenderTexture SkyCamTex { get; set; }
+		public Camera ClearCam { get; set; }
+		public RenderTexture ClearCamTex { get; set; }
 		public Transform CloudPlane { get; set; }
 
 		void Start ()
@@ -55,7 +57,12 @@ namespace ProceduralSkyMod
 			else
 				SunLight.cookie = null;
 
+			//RenderTexture current = RenderTexture.active;
+			//RenderTexture.active = SkyCamTex;
+			//SkyCamTex.DiscardContents();
+			ClearCam.RenderToCubemap(ClearCamTex);
 			SkyCam.RenderToCubemap(SkyCamTex);
+			//RenderTexture.active = current;
 
 #if !CYBEX_TIME
 			// fauxnik time algo
@@ -163,6 +170,56 @@ namespace ProceduralSkyMod
 #endif
 
 			RainController.SetRainColor(new Color(RenderSettings.fogColor.r + 0.5f, RenderSettings.fogColor.g + 0.5f, RenderSettings.fogColor.b + 0.5f, 1));
+			
+#if DEBUG
+            if (Input.GetKeyUp(KeyCode.F9))
+			{
+				var skyCamTexSize = SkyCamTex.width;
+				Cubemap cubemap = new Cubemap(skyCamTexSize, UnityEngine.Experimental.Rendering.DefaultFormat.HDR, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+				ClearCam.RenderToCubemap(cubemap);
+				//SkyCam.RenderToCubemap(cubemap);
+				//Camera.main.RenderToCubemap(cubemap);
+				Texture2D pngTex = new Texture2D(4 * skyCamTexSize, 3 * skyCamTexSize);
+				pngTex.SetPixels(skyCamTexSize, 0, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.PositiveY));
+				pngTex.SetPixels(0, skyCamTexSize, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.NegativeX));
+				pngTex.SetPixels(skyCamTexSize, skyCamTexSize, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.PositiveZ));
+				pngTex.SetPixels(2 * skyCamTexSize, skyCamTexSize, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.PositiveX));
+				pngTex.SetPixels(3 * skyCamTexSize, skyCamTexSize, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.NegativeZ));
+				pngTex.SetPixels(skyCamTexSize, 2 * skyCamTexSize, skyCamTexSize, skyCamTexSize, cubemap.GetPixels(CubemapFace.NegativeY));
+				byte[] pngBytes = pngTex.EncodeToPNG();
+				Destroy(pngTex);
+				File.WriteAllBytes(Main.ModPath + $"cubemap-debug-{DateTime.Now.ToString("yyyyMMdd-hhmmss")}.png", pngBytes);
+			}
+			
+			if (Input.GetKeyUp(KeyCode.F8))
+			{
+				Quaternion rotation = SkyCam.transform.rotation;
+				SkyCam.transform.rotation = Quaternion.Euler(-90, 0, 0);
+				var skyCamTexSize = SkyCamTex.width;
+				RenderTexture renderTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32);
+				SkyCam.targetTexture = renderTex;
+				SkyCam.Render();
+				SkyCam.targetTexture = null;
+				RenderTexture.active = renderTex;
+				Texture2D pngTex = new Texture2D(skyCamTexSize, skyCamTexSize);
+				pngTex.ReadPixels(new Rect(0, 0, skyCamTexSize, skyCamTexSize), 0, 0);
+				pngTex.Apply();
+				RenderTexture.active = null;
+				byte[] pngBytes = pngTex.EncodeToPNG();
+				Destroy(pngTex);
+				Destroy(renderTex);
+				File.WriteAllBytes(Main.ModPath + $"skycam-debug-{DateTime.Now.ToString("yyyyMMdd-hhmmss")}.png", pngBytes);
+				SkyCam.transform.rotation = rotation;
+			}
+			
+			if (Input.GetKeyUp(KeyCode.F7))
+			{
+				SkyCam.stereoTargetEye = StereoTargetEyeMask.None;
+				SkyCam.depth = 1;
+				SkyCam.fieldOfView = 90;
+				SkyCam.enabled = !SkyCam.enabled;
+			}
+#endif
 		}
 
 		void OnDisable ()
