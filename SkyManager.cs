@@ -26,8 +26,8 @@ namespace ProceduralSkyMod
 		public Material CloudMaterial { get; set; }
 		public Material MoonMaterial { get; set; }
 
-		public Transform ClearCam { get; set; }
-		public Transform SkyCam { get; set; }
+		public RenderTexture SkyCamTex { get; set; }
+		public Camera SkyCam { get; set; }
 		public Transform CloudPlane { get; set; }
 
 		void Start ()
@@ -54,6 +54,8 @@ namespace ProceduralSkyMod
 				SunLight.cookie = WeatherSource.SunShadowRenderImage;
 			else
 				SunLight.cookie = null;
+
+			SkyCam.RenderToCubemap(SkyCamTex);
 
 #if !CYBEX_TIME
 			// fauxnik time algo

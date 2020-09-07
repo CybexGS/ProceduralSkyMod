@@ -9,7 +9,6 @@ namespace ProceduralSkyMod
 		public const float moonDistanceToCamera = 10;
 
 		private Light dirLight;
-		private Camera mainCam;
 
 		private Material _skyMaterial;
 		private AudioClip _rainAudioClip;
@@ -17,6 +16,7 @@ namespace ProceduralSkyMod
 		private Material _starMaterial;
 		private GameObject _moonPrefab;
 		private GameObject _rainPrefab;
+		private Material _cubemapMaterial;
 
 		public void Init ()
 		{
@@ -33,6 +33,15 @@ namespace ProceduralSkyMod
 			_starMaterial = assets.LoadAsset<Material>("Assets/Materials/StarBox.mat");
 			_moonPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/Moon.prefab");
 			_rainPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/RainDrop.prefab");
+
+			assets.Unload(false);
+
+#if DEBUG
+			Debug.Log(">>> >>> >>> Loading Cubemap Skybox Material Asset...");
+#endif
+			assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/cubemap-skybox");
+
+			_cubemapMaterial = assets.LoadAsset<Material>("Assets/Materials/CubemapSkybox.mat");
 
 			assets.Unload(false);
 
@@ -80,40 +89,25 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Setting Up Cameras...");
 #endif
-			// main cam
-			mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-			mainCam.clearFlags = CameraClearFlags.Depth;
-			mainCam.cullingMask = -1;
-			mainCam.cullingMask &= ~(1 << 31);
-			//mainCam.depth = -1; // original setting
-
 			// sky cam
 			Camera skyCam = new GameObject() { name = "SkyCam" }.AddComponent<Camera>();
-			GameObject skyCamGimbal = new GameObject { name = "SkyCamGimbal" };
-			skyCamGimbal.transform.SetParent(psMaster.transform, false);
-			skyCam.transform.SetParent(skyCamGimbal.transform, false);
-			skyCam.clearFlags = CameraClearFlags.Depth;
+			skyCam.transform.SetParent(psMaster.transform, false);
+			skyCam.clearFlags = CameraClearFlags.Skybox;
 			skyCam.cullingMask = 0;
 			skyCam.cullingMask |= 1 << 31;
-			skyCam.depth = -2;
-			skyCam.fieldOfView = mainCam.fieldOfView;
-			skyCam.nearClipPlane = mainCam.nearClipPlane;
 			skyCam.farClipPlane = 100;
-			// this localScale negates VR stereo separation
-			skyCamGimbal.transform.localScale = Vector3.zero;
-			skyCamGimbal.AddComponent<PositionConstraintOnPreCull>().source = psMaster.transform;
-
-			// clear cam
-			Camera clearCam = new GameObject() { name = "ClearCam" }.AddComponent<Camera>();
-			clearCam.clearFlags = CameraClearFlags.Skybox;
-			clearCam.cullingMask = 0;
-			clearCam.depth = -3;
-			clearCam.fieldOfView = mainCam.fieldOfView;
-
-			SkyCamConstraint constraint = skyCam.gameObject.AddComponent<SkyCamConstraint>();
-			constraint.main = mainCam;
-			constraint.sky = skyCam;
-			constraint.clear = clearCam;
+			skyCam.enabled = false;
+			// override skyCam's skybox with skyMaterial to render sun disk
+			Skybox skyCamSkybox = skyCam.gameObject.AddComponent<Skybox>();
+			skyCamSkybox.material = skyMaterial;
+			// skyCamOutputMat will be used for global skybox
+			int skyCamTexSize = 4096;
+			RenderTexture skyCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.DefaultHDR);
+			skyCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
+			Material skyCamOutputMat = _cubemapMaterial;
+			skyCamOutputMat.SetTexture("_Tex", skyCamTex); // shader: Skybox/Cubemap
+			// initialize skybox
+			skyCam.RenderToCubemap(skyCamTex);
 
 			// cloud render texture cam
 			Camera cloudRendTexCam = new GameObject() { name = "CloudRendTexCam" }.AddComponent<Camera>();
@@ -169,7 +163,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Audio Sources...");
 #endif
 			GameObject psAudio = new GameObject() { name = "ProceduralSkyAudio" };
-			psAudio.transform.SetParent(mainCam.transform);
+			psAudio.transform.SetParent(Camera.main.transform);
 			RainController.RainAudio = psAudio.AddComponent<AudioSource>();
 
 			RainController.RainAudio.clip = _rainAudioClip;
@@ -247,7 +241,7 @@ namespace ProceduralSkyMod
 			GameObject psRainParticleSys = new GameObject() { name = "ProceduralSkyRainParticleSystem" };
 
 			PositionConstraintOnUpdate psRainParticleSysconstraint = psRainParticleSys.AddComponent<PositionConstraintOnUpdate>();
-			psRainParticleSysconstraint.source = mainCam.transform;
+			psRainParticleSysconstraint.source = Camera.main.transform;
 
 			GameObject rainObj = GameObject.Instantiate(_rainPrefab);
 			rainObj.transform.SetParent(psRainParticleSys.transform);
@@ -278,10 +272,9 @@ namespace ProceduralSkyMod
 
 			skyManager.StarMaterial = starBox.GetComponent<MeshRenderer>().sharedMaterial;
 
-			skyManager.SkyCam = skyCam.transform;
+			skyManager.SkyCam = skyCam;
+			skyManager.SkyCamTex = skyCamTex;
 			skyManager.SkyMaterial = skyMaterial;
-
-			skyManager.ClearCam = clearCam.transform;
 
 			skyManager.MoonPathCenter = moonBillboard.transform;
 			skyManager.MoonMaterial = moonBillboard.GetComponent<MeshRenderer>().sharedMaterial;
@@ -291,7 +284,7 @@ namespace ProceduralSkyMod
 #endif
 			// Set render settings
 			RenderSettings.sun = dirLight;
-			RenderSettings.skybox = skyMaterial;
+			RenderSettings.skybox = skyCamOutputMat;
 			RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
 
 #if DEBUG
