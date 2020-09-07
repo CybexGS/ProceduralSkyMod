@@ -38,10 +38,9 @@ namespace ProceduralSkyMod
 #if DEBUG
 			Debug.Log(">>> >>> >>> Loading Cubemap Skybox Material Asset...");
 #endif
-			assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/cubemap-skybox");
+			assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/zwrite_test");
 
-			Material _defaultCubemapMat = assets.LoadAsset<Material>("Assets/Materials/DefaultCubemapSkybox.mat");
-			Material _layeredCubemapMat = assets.LoadAsset<Material>("Assets/Materials/LayeredCubemapSkybox.mat");
+			Material _layeredCubemapMat = assets.LoadAsset<Material>("Assets/Materials/CubemapOverlay.mat");
 
 			assets.Unload(false);
 
