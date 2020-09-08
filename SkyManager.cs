@@ -10,8 +10,8 @@ namespace ProceduralSkyMod
 	public class SkyManager : MonoBehaviour
 	{
 		private Color ambientDay = new Color(.282f, .270f, .243f, 1f);
-		private Color ambientDarkNight = new Color(.102f, .102f, .110f, 1f);
-		private Color ambientMoonNight = new Color(.157f, .157f, .227f, 1f);
+		private Color ambientDarkNight = new Color(.082f, .082f, .098f, 1f);
+		private Color ambientMoonNight = new Color(.180f, .180f, .220f, 1f);
 		private Color defaultFog, nightFog;
 		private float defaultFogDensity;
 
