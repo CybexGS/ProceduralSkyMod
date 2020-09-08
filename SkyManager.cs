@@ -10,7 +10,8 @@ namespace ProceduralSkyMod
 	public class SkyManager : MonoBehaviour
 	{
 		private Color ambientDay = new Color(.282f, .270f, .243f, 1f);
-		private Color ambientNight = new Color(.079f, .079f, .112f, 1f);
+		private Color ambientDarkNight = new Color(.082f, .082f, .098f, 1f);
+		private Color ambientMoonNight = new Color(.180f, .180f, .220f, 1f);
 		private Color defaultFog, nightFog;
 		private float defaultFogDensity;
 
@@ -105,9 +106,12 @@ namespace ProceduralSkyMod
 			worldPos = PlayerManager.PlayerTransform.position - WorldMover.currentMove;
 			transform.position = new Vector3(worldPos.x * .001f, 0, worldPos.z * .001f);
 
-			Vector3 highLatitudeCorrection = SunPathCenter.parent.TransformVector(SunPathCenter.localPosition) - SunPathCenter.parent.position / DateToSkyMapper.maxProjectedSunOffset;
-			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + highLatitudeCorrection;
+			Vector3 sunHighLatitudeCorrection = SunPathCenter.parent.TransformVector(SunPathCenter.localPosition) - SunPathCenter.parent.position / DateToSkyMapper.maxProjectedSunOffset;
+			Vector3 sunPos = SunLight.transform.position - SunPathCenter.position + sunHighLatitudeCorrection;
 			float sunOverHorizonFac = Mathf.Clamp01(sunPos.y);
+			Vector3 moonHighLatitudeCorrection = MoonPathCenter.parent.TransformVector(MoonPathCenter.localPosition) - MoonPathCenter.parent.position / DateToSkyMapper.maxProjectedMoonOffset;
+			Vector3 moonPos = MoonPathCenter.TransformVector(Vector3.up * ProceduralSkyInitializer.moonDistanceToCamera) - MoonPathCenter.position + moonHighLatitudeCorrection;
+			float moonOverHorizonFac = Mathf.Clamp01(moonPos.y);
 			SunLight.intensity = sunOverHorizonFac * 1.5f;
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, sunOverHorizonFac);
 
@@ -115,7 +119,8 @@ namespace ProceduralSkyMod
 
 			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, sunOverHorizonFac));
 			// gives aproximate moon phase
-			MoonMaterial.SetFloat("_MoonPhase", Vector3.SignedAngle(SunPathCenter.right, MoonPathCenter.right, SunPathCenter.forward) / 180);
+			float moonPhase = Vector3.SignedAngle(SunPathCenter.right, MoonPathCenter.right, SunPathCenter.forward) / 180;
+			MoonMaterial.SetFloat("_MoonPhase", moonPhase);
 			MoonMaterial.SetFloat("_Exposure", Mathf.Lerp(2f, 4f, sunOverHorizonFac));
 
 			SkyMaterial.SetFloat("_Exposure", Mathf.Lerp(.01f, 1f, sunOverHorizonFac));
@@ -141,6 +146,7 @@ namespace ProceduralSkyMod
 			}
 #endif
 
+			Color ambientNight = Color.Lerp(ambientDarkNight, ambientMoonNight, moonOverHorizonFac * Mathf.Abs(moonPhase));
 			RenderSettings.fogColor = Color.Lerp(nightFog, defaultFog, sunOverHorizonFac);
 			RenderSettings.ambientSkyColor = Color.Lerp(ambientNight, ambientDay, sunOverHorizonFac);
 			

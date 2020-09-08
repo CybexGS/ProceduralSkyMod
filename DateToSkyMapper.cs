@@ -90,5 +90,6 @@ namespace ProceduralSkyMod
 		private static readonly double jDaysPerLunarPrecession = 18.6 * 365.25; // 18.6 years per precessions, 365.25 jdays per year
 
 		public static readonly float maxProjectedSunOffset = ProceduralSkyInitializer.sunDistanceToCamera * Mathf.Tan(Mathf.Deg2Rad * 23.4f);
+		public static readonly float maxProjectedMoonOffset = ProceduralSkyInitializer.moonDistanceToCamera * Mathf.Tan(Mathf.Deg2Rad * (23.4f + 5.14f));
 	}
 }
