@@ -10,6 +10,7 @@ namespace ProceduralSkyMod
 
 		private Light dirLight;
 
+		private Material _layeredCubemap;
 		private Material _skyMaterial;
 		private AudioClip _rainAudioClip;
 		private GameObject _cloudPrefab;
@@ -26,21 +27,13 @@ namespace ProceduralSkyMod
 			// Load the asset bundle
 			AssetBundle assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/proceduralskymod");
 
+			_layeredCubemap = assets.LoadAsset<Material>("Assets/Materials/CubemapOverlay.mat");
 			_skyMaterial = assets.LoadAsset<Material>("Assets/Materials/Sky.mat");
 			_rainAudioClip = assets.LoadAsset<AudioClip>("Assets/Audio/rain-03.wav");
 			_cloudPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/CloudPlane.prefab");
 			_starMaterial = assets.LoadAsset<Material>("Assets/Materials/StarBox.mat");
 			_moonPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/Moon.prefab");
 			_rainPrefab = assets.LoadAsset<GameObject>("Assets/Prefabs/RainDrop.prefab");
-
-			assets.Unload(false);
-
-#if DEBUG
-			Debug.Log(">>> >>> >>> Loading Cubemap Skybox Material Asset...");
-#endif
-			assets = AssetBundle.LoadFromFile(Main.ModPath + "Resources/zwrite_test");
-
-			Material _layeredCubemapMat = assets.LoadAsset<Material>("Assets/Materials/CubemapOverlay.mat");
 
 			assets.Unload(false);
 
@@ -118,7 +111,7 @@ namespace ProceduralSkyMod
 			clearCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			RenderTexture skyCamTex = new RenderTexture(skyCamTexSize, skyCamTexSize, 32, RenderTextureFormat.ARGBFloat);
 			skyCamTex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-			Material skyCamOutputMat = _layeredCubemapMat;
+			Material skyCamOutputMat = _layeredCubemap;
 			skyCamOutputMat.SetTexture("_Tex", clearCamTex); // shader: Skybox/Cubemap
 			skyCamOutputMat.SetTexture("_AlphaTex", skyCamTex); // shader: Skybox/CubemapOverlay
 
