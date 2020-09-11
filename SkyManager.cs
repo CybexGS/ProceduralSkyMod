@@ -57,8 +57,8 @@ namespace ProceduralSkyMod
 			else
 				SunLight.cookie = null;
 
-			ClearCam.RenderToCubemap(ClearCamTex);
-			SkyCam.RenderToCubemap(SkyCamTex);
+			ClearCam.RenderToCubemap(ClearCamTex, 63 & ~(1 << (int)CubemapFace.NegativeY));
+			SkyCam.RenderToCubemap(SkyCamTex, 63 & ~(1 << (int)CubemapFace.NegativeY));
 
 #if !CYBEX_TIME
 			// fauxnik time algo
