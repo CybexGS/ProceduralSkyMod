@@ -222,6 +222,7 @@ namespace ProceduralSkyMod
 			Debug.Log(">>> >>> >>> Setting Up Starbox...");
 #endif
 			GameObject starBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			_starMaterial.SetFloat("_Exposure", .5f);
 			starBox.GetComponent<MeshRenderer>().sharedMaterial = _starMaterial;
 			starBox.transform.SetParent(skyboxNight.transform);
 			starBox.transform.ResetLocal();
