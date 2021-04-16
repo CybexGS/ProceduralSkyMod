@@ -26,8 +26,10 @@ namespace ProceduralSkyMod
 		public Material CloudMaterial { get; set; }
 		public Material MoonMaterial { get; set; }
 
-		public Transform ClearCam { get; set; }
-		public Transform SkyCam { get; set; }
+		public Camera SkyCam { get; set; }
+		public RenderTexture SkyCamTex { get; set; }
+		public Camera ClearCam { get; set; }
+		public RenderTexture ClearCamTex { get; set; }
 		public Transform CloudPlane { get; set; }
 
 		void Start ()
@@ -54,6 +56,9 @@ namespace ProceduralSkyMod
 				SunLight.cookie = WeatherSource.SunShadowRenderImage;
 			else
 				SunLight.cookie = null;
+
+			ClearCam.RenderToCubemap(ClearCamTex, 63 & ~(1 << (int)CubemapFace.NegativeY));
+			SkyCam.RenderToCubemap(SkyCamTex, 63 & ~(1 << (int)CubemapFace.NegativeY));
 
 #if !CYBEX_TIME
 			// fauxnik time algo
@@ -111,7 +116,7 @@ namespace ProceduralSkyMod
 			SunLight.intensity = sunOverHorizonFac * 1.5f;
 			SunLight.color = Color.Lerp(new Color(1f, 0.5f, 0), Color.white, sunOverHorizonFac);
 
-			StarMaterial.SetFloat("_Visibility", (-sunOverHorizonFac + 1) * .01f);
+			StarMaterial.SetFloat("_Visibility", Mathf.Clamp01(1f - 4f * sunOverHorizonFac));
 
 			MoonMaterial.SetFloat("_MoonDayNight", Mathf.Lerp(2.19f, 1.5f, sunOverHorizonFac));
 			// gives aproximate moon phase
