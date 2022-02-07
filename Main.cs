@@ -69,7 +69,7 @@ namespace ProceduralSkyMod
 			if (!initialized)
 			{
 				if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || 
-					!InventoryStartingItems.Exists || !InventoryStartingItems.Instance.itemsLoaded) return;
+					!SingletonBehaviour<Inventory>.Instance) return;
 				else
 				{
 					ProceduralSkyInitializer initializer = new ProceduralSkyInitializer();
